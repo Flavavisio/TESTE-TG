@@ -31664,7 +31664,18 @@ window._relPrefill = function(msg){
         pergunta: 'Em que posso ajudar?',
         // Se criares um PNG/WebP da mascote, coloca-o neste caminho.
         // Se o ficheiro não existir, o TG usa automaticamente o robô SVG incluído abaixo.
-        mascoteUrl: 'assets/tg-mascote-idle.webp'
+        mascoteUrl: 'assets/tg-mascote-idle.webp',
+        mascotes: {
+            idle: 'assets/tg-mascote-idle.webp',
+            ola: 'assets/tg-mascote-ola.webp',
+            chat: 'assets/tg-mascote-chat.webp',
+            pensar: 'assets/tg-mascote-pensar.webp',
+            sucesso: 'assets/tg-mascote-sucesso.webp',
+            alerta: 'assets/tg-mascote-alerta.webp',
+            concluido: 'assets/tg-mascote-concluido.webp',
+            sugestao: 'assets/tg-mascote-sugestao.webp',
+            adeus: 'assets/tg-mascote-adeus.webp'
+        }
     };
 
     const normalizarTG = (txt) => String(txt || '')
@@ -31950,6 +31961,7 @@ window._relPrefill = function(msg){
         wrap.className = classe || '';
         const img = new Image();
         img.className = 'tg-mascote-img';
+        img.dataset.tgMascote = '1';
         img.alt = 'TG - mascote da Total Gest';
         img.src = TG_CONFIG.mascoteUrl;
         img.onload = () => { wrap.innerHTML = ''; wrap.appendChild(img); };
@@ -31959,6 +31971,94 @@ window._relPrefill = function(msg){
     }
 
     let rootTG, janelaTG, corpoTG, inputTG, balaoTG;
+    let _tgEstado = 'idle';
+    let _tgEstadoTimer = null;
+    let _tgTemAlertas = false;
+
+    function _tgImgs() {
+        return rootTG ? [...rootTG.querySelectorAll('img[data-tg-mascote="1"], .tg-mascote-img')] : [];
+    }
+
+    function _tgDefinirEstado(estado, duracaoMs) {
+        const url = TG_CONFIG.mascotes?.[estado] || TG_CONFIG.mascoteUrl;
+        if (!url) return;
+        _tgEstado = estado;
+
+        _tgImgs().forEach(img => {
+            img.dataset.tgEstado = estado;
+            img.src = url;
+        });
+
+        if (_tgEstadoTimer) clearTimeout(_tgEstadoTimer);
+        _tgEstadoTimer = null;
+
+        if (duracaoMs) {
+            _tgEstadoTimer = setTimeout(() => {
+                _tgEstadoTimer = null;
+                _tgRestaurarEstadoBase();
+            }, duracaoMs);
+        }
+    }
+
+    function _tgRestaurarEstadoBase() {
+        _tgDefinirEstado(_tgTemAlertas ? 'alerta' : 'idle');
+    }
+
+    function _tgMostrarBalao(html, ms = 1800) {
+        if (!balaoTG) return;
+        balaoTG.innerHTML = html;
+        balaoTG.classList.add('visivel');
+        clearTimeout(balaoTG._tgTimer);
+        balaoTG._tgTimer = setTimeout(() => balaoTG?.classList.remove('visivel'), ms);
+    }
+
+    function _tgAtualizarAlertas() {
+        let tem = false;
+        try {
+            const lista = (typeof dados !== 'undefined' && Array.isArray(dados?.notificacoes)) ? dados.notificacoes : [];
+            if (lista.length && typeof usuarioLogado !== 'undefined' && usuarioLogado) {
+                tem = lista.some(n => {
+                    if (n?.lida === true) return false;
+                    if (usuarioLogado.role === 'superadmin') return true;
+                    if (!n?.destinatarioId && !n?.adminId) return true;
+                    return n.destinatarioId === usuarioLogado.id ||
+                           n.adminId === usuarioLogado.id ||
+                           n.adminId === usuarioLogado.adminId;
+                });
+            }
+            if (!tem && document.querySelector('#tgSidebarNav .tg-luz-vermelho, #tgSidebarNav .tg-luz-amarelo')) {
+                tem = true;
+            }
+        } catch (e) {}
+
+        const mudou = tem !== _tgTemAlertas;
+        _tgTemAlertas = tem;
+
+        const ponto = rootTG?.querySelector('.tg-ass-ponto');
+        if (ponto) {
+            ponto.style.background = tem ? '#ff6500' : '#22c55e';
+            ponto.style.boxShadow = tem
+                ? '0 0 0 4px rgba(255,101,0,.16),0 0 14px rgba(255,101,0,.45)'
+                : '0 0 0 4px rgba(34,197,94,.13)';
+        }
+
+        const launcher = document.getElementById('tgAssistenteLauncher');
+        if (mudou && tem && launcher && !launcher.matches(':hover') && !janelaTG?.classList.contains('aberto')) {
+            _tgDefinirEstado('alerta');
+            _tgMostrarBalao('<strong>Tem avisos por verificar.</strong><br>Posso ajudá-lo a encontrá-los.', 3300);
+        } else if (!tem && _tgEstado === 'alerta') {
+            _tgRestaurarEstadoBase();
+        }
+    }
+
+    function _tgEstadoSucesso(ms = 1500) {
+        _tgDefinirEstado('sucesso', ms);
+    }
+
+    function _tgEstadoConcluido(ms = 1600) {
+        _tgDefinirEstado('concluido', ms);
+    }
+
 
     function adicionarMensagemTG(texto, tipo) {
         if (!corpoTG) return;
@@ -31997,11 +32097,16 @@ window._relPrefill = function(msg){
             btn.innerHTML = `<span class="tg-ass-opcao-ic"><i class="fas ${acao.icone || 'fa-arrow-right'}"></i></span><span><b>${acao.titulo}</b><small>${acao.descricao || ''}</small></span><i class="fas fa-chevron-right"></i>`;
             btn.onclick = () => {
                 adicionarMensagemTG(`Abrir: ${acao.titulo}`, 'user');
+                _tgEstadoConcluido(1350);
                 setTimeout(() => {
                     try { acao.executar(); }
-                    catch (e) { console.error('TG Assistente:', e); adicionarMensagemTG('Não consegui abrir essa área. Tente através do menu principal.', 'bot'); }
-                    fecharTG(false);
-                }, 120);
+                    catch (e) {
+                        console.error('TG Assistente:', e);
+                        adicionarMensagemTG('Não consegui abrir essa área. Tente através do menu principal.', 'bot');
+                        _tgDefinirEstado('alerta', 1800);
+                    }
+                    setTimeout(() => fecharTG(false), 500);
+                }, 220);
             };
             lista.appendChild(btn);
         });
@@ -32030,37 +32135,53 @@ window._relPrefill = function(msg){
     function processarPerguntaTG(pergunta) {
         const q = String(pergunta || '').trim();
         if (!q) return;
+
         adicionarMensagemTG(q, 'user');
-        const nq = normalizarTG(q);
-        if (/^(ola|bom dia|boa tarde|boa noite|oi|hey)\b/.test(nq)) {
-            adicionarMensagemHtmlTG('Olá! 👋 Diga-me o que pretende fazer na <span class="tg-laranja">Total Gest</span> e eu levo-o diretamente para a área certa.');
-            mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Sugestões para a área onde está');
-            return;
-        }
-        if (/ajuda|o que podes|que podes|como funciona/.test(nq)) {
-            adicionarMensagemTG('Posso ajudar a encontrar áreas e ações dentro da plataforma. Por exemplo: criar uma OS, ver clientes, consultar manutenções, stock, equipa, ponto, frota ou relatórios.', 'bot');
-            mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Pode começar por aqui');
-            return;
-        }
-        const resultados = procurarAcoesTG(q);
-        if (!resultados.length) {
-            adicionarMensagemTG('Não encontrei uma opção exata. Escolha uma destas áreas ou escreva de outra forma o que pretende fazer.', 'bot');
-            mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Sugestões');
-            return;
-        }
-        if (resultados.length === 1 || (resultados[0].score >= 10 && resultados[0].score >= (resultados[1]?.score || 0) + 5)) {
-            adicionarMensagemTG('Encontrei esta opção:', 'bot');
-            mostrarOpcoesTG([resultados[0]]);
-        } else {
-            adicionarMensagemTG('Penso que procura uma destas opções:', 'bot');
-            mostrarOpcoesTG(resultados.slice(0,4));
-        }
+        _tgDefinirEstado('pensar');
+
+        setTimeout(() => {
+            const nq = normalizarTG(q);
+
+            if (/^(ola|bom dia|boa tarde|boa noite|oi|hey)\b/.test(nq)) {
+                adicionarMensagemHtmlTG('Olá! 👋 Diga-me o que pretende fazer na <span class="tg-laranja">Total Gest</span> e eu levo-o diretamente para a área certa.');
+                _tgDefinirEstado('ola', 1500);
+                mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Sugestões para a área onde está');
+                return;
+            }
+
+            if (/ajuda|o que podes|que podes|como funciona/.test(nq)) {
+                adicionarMensagemTG('Posso ajudar a encontrar áreas e ações dentro da plataforma. Por exemplo: criar uma OS, ver clientes, consultar manutenções, stock, equipa, ponto, frota ou relatórios.', 'bot');
+                _tgDefinirEstado('sugestao', 1900);
+                mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Pode começar por aqui');
+                return;
+            }
+
+            const resultados = procurarAcoesTG(q);
+
+            if (!resultados.length) {
+                adicionarMensagemTG('Não encontrei uma opção exata. Escolha uma destas áreas ou escreva de outra forma o que pretende fazer.', 'bot');
+                _tgDefinirEstado('sugestao', 1900);
+                mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Sugestões');
+                return;
+            }
+
+            if (resultados.length === 1 || (resultados[0].score >= 10 && resultados[0].score >= (resultados[1]?.score || 0) + 5)) {
+                adicionarMensagemTG('Encontrei esta opção:', 'bot');
+                _tgEstadoSucesso(1700);
+                mostrarOpcoesTG([resultados[0]]);
+            } else {
+                adicionarMensagemTG('Penso que procura uma destas opções:', 'bot');
+                _tgDefinirEstado('sugestao', 1800);
+                mostrarOpcoesTG(resultados.slice(0,4));
+            }
+        }, 620);
     }
 
     function abrirTG() {
         if (!janelaTG) return;
         janelaTG.classList.add('aberto');
         if (balaoTG) balaoTG.classList.remove('visivel');
+        _tgDefinirEstado('chat', 1700);
         try { localStorage.setItem('tg_assistente_aberto_uma_vez', '1'); } catch (e) {}
         setTimeout(() => inputTG?.focus(), 80);
         // Atualiza as sugestões conforme a secção atual, sem apagar a conversa.
@@ -32075,6 +32196,8 @@ window._relPrefill = function(msg){
     function fecharTG(limpar) {
         if (!janelaTG) return;
         janelaTG.classList.remove('aberto');
+        _tgDefinirEstado('adeus', 1800);
+        _tgMostrarBalao('<strong>Até já! 👋</strong><br>Quando precisar, estou por aqui.', 1700);
         if (limpar && corpoTG) { corpoTG.innerHTML = ''; corpoTG.dataset.iniciado = '0'; }
     }
 
@@ -32111,6 +32234,17 @@ window._relPrefill = function(msg){
         avatar?.appendChild(criarMascoteElementoTG(''));
         launcher?.appendChild(criarMascoteElementoTG(''));
 
+        launcher?.addEventListener('mouseenter', () => {
+            if (janelaTG?.classList.contains('aberto')) return;
+            _tgDefinirEstado('ola');
+            _tgMostrarBalao('<strong>Olá! 👋</strong><br>Em que posso ajudar?', 1600);
+        });
+
+        launcher?.addEventListener('mouseleave', () => {
+            if (janelaTG?.classList.contains('aberto')) return;
+            _tgRestaurarEstadoBase();
+        });
+
         launcher?.addEventListener('click', () => janelaTG?.classList.contains('aberto') ? fecharTG(false) : abrirTG());
         document.getElementById('tgAssistenteFechar')?.addEventListener('click', () => fecharTG(false));
         document.getElementById('tgAssistenteForm')?.addEventListener('submit', ev => {
@@ -32130,10 +32264,31 @@ window._relPrefill = function(msg){
         if (!jaViu) {
             setTimeout(() => {
                 if (!janelaTG?.classList.contains('aberto')) {
-                    balaoTG?.classList.add('visivel');
-                    setTimeout(() => balaoTG?.classList.remove('visivel'), 6500);
+                    _tgDefinirEstado('ola', 2200);
+                    _tgMostrarBalao('<strong>Olá! Sou o TG. 👋</strong><br>Em que posso ajudar?', 6500);
                 }
             }, 2600);
+        }
+
+        _tgAtualizarAlertas();
+        if (!window.__TG_ALERTAS_INTERVAL__) {
+            window.__TG_ALERTAS_INTERVAL__ = setInterval(_tgAtualizarAlertas, 5000);
+        }
+
+        if (!window.__TG_ALERT_WRAP__) {
+            window.__TG_ALERT_WRAP__ = true;
+            const _alertTGAnterior = window.alert;
+            window.alert = function(msg) {
+                const texto = String(msg || '');
+                try {
+                    if (/✅|sucesso|conclu[ií]d|guardad[oa]|criad[oa]|atualizad[oa]|aprovad[oa]/i.test(texto)) {
+                        _tgEstadoConcluido(1700);
+                    } else if (/⚠️|aten[cç][aã]o|aviso|erro|falhou|falha|❌/i.test(texto)) {
+                        _tgDefinirEstado('alerta', 1900);
+                    }
+                } catch (e) {}
+                return _alertTGAnterior ? _alertTGAnterior.apply(this, arguments) : undefined;
+            };
         }
     }
 
@@ -32142,100 +32297,15 @@ window._relPrefill = function(msg){
         abrir: abrirTG,
         fechar: () => fecharTG(false),
         perguntar: (texto) => { abrirTG(); setTimeout(() => processarPerguntaTG(texto), 80); },
-        mostrarAcao: (id) => { const a = acaoPorIdTG(id); if (!a) return; abrirTG(); setTimeout(() => mostrarOpcoesTG([a]), 80); },
+        mostrarAcao: (id) => { const a = acaoPorIdTG(id); if (!a) return; abrirTG(); setTimeout(() => { _tgDefinirEstado('sugestao', 1600); mostrarOpcoesTG([a]); }, 80); },
+        estado: (estado, ms) => _tgDefinirEstado(estado, ms),
+        alerta: () => { _tgTemAlertas = true; _tgDefinirEstado('alerta'); },
+        concluir: () => _tgEstadoConcluido(1700),
+        sucesso: () => _tgEstadoSucesso(1600),
+        atualizarAlertas: _tgAtualizarAlertas,
         configurarMascote: (url) => { TG_CONFIG.mascoteUrl = url || TG_CONFIG.mascoteUrl; }
     };
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montarTG, { once: true });
     else setTimeout(montarTG, 0);
-})();
-
-
-/* ============================================================
-   TG — ESTADOS VISUAIS DA MASCOTE
-   assets/tg-mascote-idle.webp   -> estado normal
-   assets/tg-mascote-adeus.webp  -> hover / despedida
-   assets/tg-mascote-alerta.webp -> quando existem alertas
-============================================================ */
-(function configurarEstadosVisuaisTG() {
-    const TG_ASSETS = {
-        idle: 'assets/tg-mascote-idle.webp',
-        adeus: 'assets/tg-mascote-adeus.webp',
-        alerta: 'assets/tg-mascote-alerta.webp'
-    };
-
-    function obterImagemTG() {
-        return document.querySelector(
-            '#tgMascote, #tg-mascote, #tg-launcher img, .tg-mascote img, .tg-launcher img, img[data-tg-mascote]'
-        );
-    }
-
-    function definirEstadoTG(estado) {
-        const img = obterImagemTG();
-        if (!img || !TG_ASSETS[estado]) return;
-        if (!img.dataset.tgEstadoBase) img.dataset.tgEstadoBase = 'idle';
-        if (img.dataset.tgEstado === estado) return;
-        img.dataset.tgEstado = estado;
-        img.src = TG_ASSETS[estado];
-    }
-
-    window.tgEstadoNormal = () => definirEstadoTG('idle');
-    window.tgEstadoAdeus  = () => definirEstadoTG('adeus');
-    window.tgEstadoAlerta = () => definirEstadoTG('alerta');
-
-    function ligarInteracaoTG() {
-        const img = obterImagemTG();
-        if (!img || img.dataset.tgInteracaoLigada === '1') return;
-        img.dataset.tgInteracaoLigada = '1';
-        img.dataset.tgEstado = 'idle';
-
-        img.addEventListener('mouseenter', () => {
-            definirEstadoTG('adeus');
-            const balao = document.querySelector('.tg-bubble, #tgBubble, .tg-speech-bubble');
-            if (balao) {
-                balao.textContent = 'Olá! 👋';
-                balao.style.display = '';
-            }
-        });
-
-        img.addEventListener('mouseleave', () => {
-            if (document.body.classList.contains('tg-tem-alertas')) definirEstadoTG('alerta');
-            else definirEstadoTG('idle');
-        });
-    }
-
-    function atualizarAlertasTG() {
-        const notificacoes = (window.dados && Array.isArray(window.dados.notificacoes))
-            ? window.dados.notificacoes
-            : (typeof dados !== 'undefined' && Array.isArray(dados.notificacoes) ? dados.notificacoes : []);
-
-        let temAlertas = false;
-        if (typeof usuarioLogado !== 'undefined' && usuarioLogado && notificacoes.length) {
-            temAlertas = notificacoes.some(n => {
-                if (n.lida === true) return false;
-                if (usuarioLogado.role === 'superadmin') return true;
-                return !n.destinatarioId || n.destinatarioId === usuarioLogado.id ||
-                       n.adminId === usuarioLogado.id || n.adminId === usuarioLogado.adminId;
-            });
-        }
-
-        document.body.classList.toggle('tg-tem-alertas', temAlertas);
-        const img = obterImagemTG();
-        if (img && !img.matches(':hover')) definirEstadoTG(temAlertas ? 'alerta' : 'idle');
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            ligarInteracaoTG();
-            atualizarAlertasTG();
-        }, 800);
-
-        setInterval(() => {
-            ligarInteracaoTG();
-            atualizarAlertasTG();
-        }, 5000);
-    });
-
-    // Permite ao resto da aplicação forçar a atualização após ler/criar notificações.
-    window.atualizarMascoteTG = atualizarAlertasTG;
 })();
