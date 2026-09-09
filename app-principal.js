@@ -31664,7 +31664,7 @@ window._relPrefill = function(msg){
         pergunta: 'Em que posso ajudar?',
         // Se criares um PNG/WebP da mascote, coloca-o neste caminho.
         // Se o ficheiro não existir, o TG usa automaticamente o robô SVG incluído abaixo.
-        mascoteUrl: 'assets/tg-mascote-animada.webp'
+        mascoteUrl: 'assets/tg-mascote-idle.webp'
     };
 
     const normalizarTG = (txt) => String(txt || '')
@@ -32148,4 +32148,94 @@ window._relPrefill = function(msg){
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montarTG, { once: true });
     else setTimeout(montarTG, 0);
+})();
+
+
+/* ============================================================
+   TG — ESTADOS VISUAIS DA MASCOTE
+   assets/tg-mascote-idle.webp   -> estado normal
+   assets/tg-mascote-adeus.webp  -> hover / despedida
+   assets/tg-mascote-alerta.webp -> quando existem alertas
+============================================================ */
+(function configurarEstadosVisuaisTG() {
+    const TG_ASSETS = {
+        idle: 'assets/tg-mascote-idle.webp',
+        adeus: 'assets/tg-mascote-adeus.webp',
+        alerta: 'assets/tg-mascote-alerta.webp'
+    };
+
+    function obterImagemTG() {
+        return document.querySelector(
+            '#tgMascote, #tg-mascote, #tg-launcher img, .tg-mascote img, .tg-launcher img, img[data-tg-mascote]'
+        );
+    }
+
+    function definirEstadoTG(estado) {
+        const img = obterImagemTG();
+        if (!img || !TG_ASSETS[estado]) return;
+        if (!img.dataset.tgEstadoBase) img.dataset.tgEstadoBase = 'idle';
+        if (img.dataset.tgEstado === estado) return;
+        img.dataset.tgEstado = estado;
+        img.src = TG_ASSETS[estado];
+    }
+
+    window.tgEstadoNormal = () => definirEstadoTG('idle');
+    window.tgEstadoAdeus  = () => definirEstadoTG('adeus');
+    window.tgEstadoAlerta = () => definirEstadoTG('alerta');
+
+    function ligarInteracaoTG() {
+        const img = obterImagemTG();
+        if (!img || img.dataset.tgInteracaoLigada === '1') return;
+        img.dataset.tgInteracaoLigada = '1';
+        img.dataset.tgEstado = 'idle';
+
+        img.addEventListener('mouseenter', () => {
+            definirEstadoTG('adeus');
+            const balao = document.querySelector('.tg-bubble, #tgBubble, .tg-speech-bubble');
+            if (balao) {
+                balao.textContent = 'Olá! 👋';
+                balao.style.display = '';
+            }
+        });
+
+        img.addEventListener('mouseleave', () => {
+            if (document.body.classList.contains('tg-tem-alertas')) definirEstadoTG('alerta');
+            else definirEstadoTG('idle');
+        });
+    }
+
+    function atualizarAlertasTG() {
+        const notificacoes = (window.dados && Array.isArray(window.dados.notificacoes))
+            ? window.dados.notificacoes
+            : (typeof dados !== 'undefined' && Array.isArray(dados.notificacoes) ? dados.notificacoes : []);
+
+        let temAlertas = false;
+        if (typeof usuarioLogado !== 'undefined' && usuarioLogado && notificacoes.length) {
+            temAlertas = notificacoes.some(n => {
+                if (n.lida === true) return false;
+                if (usuarioLogado.role === 'superadmin') return true;
+                return !n.destinatarioId || n.destinatarioId === usuarioLogado.id ||
+                       n.adminId === usuarioLogado.id || n.adminId === usuarioLogado.adminId;
+            });
+        }
+
+        document.body.classList.toggle('tg-tem-alertas', temAlertas);
+        const img = obterImagemTG();
+        if (img && !img.matches(':hover')) definirEstadoTG(temAlertas ? 'alerta' : 'idle');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            ligarInteracaoTG();
+            atualizarAlertasTG();
+        }, 800);
+
+        setInterval(() => {
+            ligarInteracaoTG();
+            atualizarAlertasTG();
+        }, 5000);
+    });
+
+    // Permite ao resto da aplicação forçar a atualização após ler/criar notificações.
+    window.atualizarMascoteTG = atualizarAlertasTG;
 })();
