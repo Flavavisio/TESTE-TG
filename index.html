@@ -218,57 +218,25 @@
         box-shadow: 0 6px 18px rgba(124,92,255,.35) !important;
     }
 
-/* ============================================================
-   TG sentado no portátil — página pública
-   O assistente completo só aparece depois do login.
-============================================================ */
-.stage-mockup-wrap{
-    position:relative;
-}
-.tg-hero-mascot-sentado{
+/* TG no hero — mascote isolada, sem caixa/fundo */
+.stage-mockup-wrap{position:relative;}
+.tg-hero-ola{
     position:absolute;
-    z-index:18;
-    top:-78px;
-    left:28%;
-    width:clamp(88px,7.2vw,126px);
+    z-index:20;
+    top:-92px;
+    left:31%;
+    width:clamp(72px,6.2vw,108px);
+    height:auto;
     pointer-events:none;
     user-select:none;
-    filter:drop-shadow(0 8px 12px rgba(21,42,82,.16));
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+    filter:drop-shadow(0 7px 8px rgba(21,42,82,.16));
 }
-.tg-hero-mascot-sentado img{
-    width:100%;
-    height:auto;
-    display:block;
-}
-
-/* Enquanto a landing/login está visível, não mostrar o assistente flutuante da aplicação. */
-body.tg-publico #tgAssistenteRoot,
-body.tg-publico #tg-assistant,
-body.tg-publico .tg-assistant{
-    display:none !important;
-}
-
-@media (max-width:1100px){
-    .tg-hero-mascot-sentado{
-        top:-62px;
-        left:24%;
-        width:92px;
-    }
-}
-@media (max-width:820px){
-    .tg-hero-mascot-sentado{
-        top:-48px;
-        left:30%;
-        width:78px;
-    }
-}
-@media (max-width:640px){
-    .tg-hero-mascot-sentado{
-        top:-42px;
-        left:24%;
-        width:68px;
-    }
-}
+@media(max-width:1100px){.tg-hero-ola{top:-70px;left:29%;width:82px;}}
+@media(max-width:820px){.tg-hero-ola{top:-55px;left:31%;width:70px;}}
+@media(max-width:640px){.tg-hero-ola{top:-46px;left:28%;width:60px;}}
 
 </style>
 </head>
@@ -340,9 +308,7 @@ body.tg-publico .tg-assistant{
 
     <!-- MOCKUP: desktop + telemóvel sobreposto -->
     <div class="stage-mockup-wrap">
-      <div class="tg-hero-mascot-sentado" aria-hidden="true">
-        <img src="assets/tg-sentado-pernas.webp" alt="" width="480" height="594" />
-      </div>
+      <img class="tg-hero-ola" src="assets/tg-mascote-ola.png" alt="TG, mascote da Total Gest, a dizer olá" />
       <div class="mac-mockup">
         <div class="mac-screen-bezel">
           <div class="mac-camera"></div>
@@ -32676,16 +32642,7 @@ function tgCalcularPoupanca(){
 }
 document.addEventListener('DOMContentLoaded', function(){ if (document.getElementById('tgc_func')) tgCalcularPoupanca(); });
 if (document.getElementById('tgc_func')) tgCalcularPoupanca();
-function atualizarLanding(){
-    var l=document.getElementById('tg-landing');
-    var publico=!(typeof usuarioLogado!=='undefined'&&usuarioLogado);
-    if(l)l.style.display=publico?'block':'none';
-    if(document.body)document.body.classList.toggle('tg-publico',publico);
-
-    /* O TG flutuante pertence à aplicação, não ao ecrã público de login. */
-    var assist=document.getElementById('tgAssistenteRoot');
-    if(assist)assist.style.display=publico?'none':'';
-}
+function atualizarLanding(){var l=document.getElementById('tg-landing');if(l)l.style.display=(typeof usuarioLogado!=='undefined'&&usuarioLogado)?'none':'block';}
 async function loginLanding(e){e.preventDefault();var em=document.getElementById('landEmail').value;var pw=document.getElementById('landSenha').value;document.getElementById('loginEmail').value=em;document.getElementById('loginSenha').value=pw;return login(e);}
 
 // Poupa espaço no ficheiro: o logo só está gravado uma vez (no cabeçalho);
