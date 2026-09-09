@@ -31647,12 +31647,11 @@ window._relPrefill = function(msg){
         // Fecho de modais ao clicar fora foi desativado a pedido — só fecha pelo X ou botão Cancelar,
         // para não perder preenchimento por engano (ex: folha de obra, formulários longos).
 
-
-    
-// =============================================================
-//  TG — ASSISTENTE E MASCOTE DA TOTAL GEST
-//  Navegação inteligente local (sem IA externa / sem API paga)
-// =============================================================
+/* =====================================================================
+   TG ASSISTENTE TOTAL GEST
+   Implementado sobre o backup enviado, sem alterar o código existente.
+   Só é montado quando usuarioLogado existe (login concluído).
+===================================================================== */
 (function instalarTGAssistente() {
     if (window.__TG_ASSISTENTE_INSTALADO__) return;
     window.__TG_ASSISTENTE_INSTALADO__ = true;
@@ -32306,6 +32305,43 @@ window._relPrefill = function(msg){
         configurarMascote: (url) => { TG_CONFIG.mascoteUrl = url || TG_CONFIG.mascoteUrl; }
     };
 
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', montarTG, { once: true });
-    else setTimeout(montarTG, 0);
+    function sincronizarTGAssistente() {
+        let autenticado = false;
+        try {
+            autenticado = (typeof usuarioLogado !== 'undefined' && !!usuarioLogado);
+        } catch (e) {}
+
+        const rootAtual = document.getElementById('tgAssistenteRoot');
+
+        if (!autenticado) {
+            if (rootAtual) rootAtual.remove();
+            rootTG = null;
+            janelaTG = null;
+            corpoTG = null;
+            inputTG = null;
+            balaoTG = null;
+            return;
+        }
+
+        if (!rootAtual) {
+            montarTG();
+        } else {
+            rootAtual.style.display = '';
+            try { _tgAtualizarAlertas(); } catch (e) {}
+        }
+    }
+
+    window.sincronizarTGAssistente = sincronizarTGAssistente;
+
+    // O backup fica intacto. Este observador limita-se a verificar se a sessão
+    // já foi autenticada e, só então, monta a mascote/assistente.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', sincronizarTGAssistente, { once: true });
+    } else {
+        setTimeout(sincronizarTGAssistente, 0);
+    }
+
+    if (!window.__TG_ASSISTENTE_LOGIN_WATCH__) {
+        window.__TG_ASSISTENTE_LOGIN_WATCH__ = setInterval(sincronizarTGAssistente, 800);
+    }
 })();
