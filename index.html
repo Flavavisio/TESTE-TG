@@ -217,27 +217,6 @@
         border: none !important;
         box-shadow: 0 6px 18px rgba(124,92,255,.35) !important;
     }
-
-/* TG no hero — mascote isolada, sem caixa/fundo */
-.stage-mockup-wrap{position:relative;}
-.tg-hero-ola{
-    position:absolute;
-    z-index:20;
-    top:-92px;
-    left:31%;
-    width:clamp(72px,6.2vw,108px);
-    height:auto;
-    pointer-events:none;
-    user-select:none;
-    background:transparent !important;
-    border:0 !important;
-    box-shadow:none !important;
-    filter:drop-shadow(0 7px 8px rgba(21,42,82,.16));
-}
-@media(max-width:1100px){.tg-hero-ola{top:-70px;left:29%;width:82px;}}
-@media(max-width:820px){.tg-hero-ola{top:-55px;left:31%;width:70px;}}
-@media(max-width:640px){.tg-hero-ola{top:-46px;left:28%;width:60px;}}
-
 </style>
 </head>
 <body>
@@ -308,7 +287,6 @@
 
     <!-- MOCKUP: desktop + telemóvel sobreposto -->
     <div class="stage-mockup-wrap">
-      <img class="tg-hero-ola" src="assets/tg-mascote-ola.png" alt="TG, mascote da Total Gest, a dizer olá" />
       <div class="mac-mockup">
         <div class="mac-screen-bezel">
           <div class="mac-camera"></div>
@@ -32642,7 +32620,697 @@ function tgCalcularPoupanca(){
 }
 document.addEventListener('DOMContentLoaded', function(){ if (document.getElementById('tgc_func')) tgCalcularPoupanca(); });
 if (document.getElementById('tgc_func')) tgCalcularPoupanca();
-function atualizarLanding(){var l=document.getElementById('tg-landing');if(l)l.style.display=(typeof usuarioLogado!=='undefined'&&usuarioLogado)?'none':'block';}
+
+<script>
+/* === TG ASSISTENTE — apenas depois do login === */
+(function instalarTGAssistente() {
+    if (window.__TG_ASSISTENTE_INSTALADO__) return;
+    window.__TG_ASSISTENTE_INSTALADO__ = true;
+
+    const TG_CONFIG = {
+        nome: 'TG',
+        titulo: 'Assistente Total Gest',
+        saudacao: 'Olá! Sou o TG, o assistente e mascote da Total Gest.',
+        pergunta: 'Em que posso ajudar?',
+        // Se criares um PNG/WebP da mascote, coloca-o neste caminho.
+        // Se o ficheiro não existir, o TG usa automaticamente o robô SVG incluído abaixo.
+        mascoteUrl: 'assets/tg-mascote-idle.webp',
+        mascotes: {
+            idle: 'assets/tg-mascote-idle.webp',
+            ola: 'assets/tg-mascote-ola.webp',
+            chat: 'assets/tg-mascote-chat.webp',
+            pensar: 'assets/tg-mascote-pensar.webp',
+            sucesso: 'assets/tg-mascote-sucesso.webp',
+            alerta: 'assets/tg-mascote-alerta.webp',
+            concluido: 'assets/tg-mascote-concluido.webp',
+            sugestao: 'assets/tg-mascote-sugestao.webp',
+            adeus: 'assets/tg-mascote-adeus.webp'
+        }
+    };
+
+    const normalizarTG = (txt) => String(txt || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const svgMascoteTG = `
+        <svg viewBox="0 0 180 230" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+                <linearGradient id="tgBody" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#ffffff"/>
+                    <stop offset="1" stop-color="#dce8f5"/>
+                </linearGradient>
+                <linearGradient id="tgFace" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#123d6d"/>
+                    <stop offset="1" stop-color="#061c39"/>
+                </linearGradient>
+                <filter id="tgShadow" x="-30%" y="-30%" width="160%" height="180%">
+                    <feDropShadow dx="0" dy="8" stdDeviation="7" flood-opacity=".25"/>
+                </filter>
+            </defs>
+            <g filter="url(#tgShadow)">
+                <path d="M81 15h18v15H81z" fill="#ff6500" rx="6"/>
+                <rect x="37" y="28" width="106" height="79" rx="34" fill="url(#tgBody)" stroke="#c8d8e8" stroke-width="3"/>
+                <rect x="48" y="40" width="84" height="54" rx="23" fill="url(#tgFace)"/>
+                <path d="M67 66c5-7 12-7 17 0" fill="none" stroke="#56c8ff" stroke-width="7" stroke-linecap="round"/>
+                <path d="M97 66c5-7 12-7 17 0" fill="none" stroke="#56c8ff" stroke-width="7" stroke-linecap="round"/>
+                <circle cx="32" cy="67" r="13" fill="#ff6500" stroke="#0b2d57" stroke-width="5"/>
+                <circle cx="148" cy="67" r="13" fill="#ff6500" stroke="#0b2d57" stroke-width="5"/>
+                <rect x="55" y="105" width="70" height="72" rx="27" fill="url(#tgBody)" stroke="#c8d8e8" stroke-width="3"/>
+                <text x="90" y="151" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="31" fill="#0b2d57">T</text>
+                <text x="105" y="151" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="31" fill="#ff6500">G</text>
+                <rect x="20" y="113" width="38" height="18" rx="9" transform="rotate(-23 20 113)" fill="#0b2d57"/>
+                <circle cx="21" cy="142" r="15" fill="#0b2d57"/>
+                <path d="M12 135l-6-12M18 131l0-14M25 134l6-11" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+                <rect x="122" y="113" width="38" height="18" rx="9" transform="rotate(23 122 113)" fill="#0b2d57"/>
+                <circle cx="160" cy="143" r="15" fill="#0b2d57"/>
+                <path d="M153 146l5 5 11-13" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="61" y="168" width="24" height="42" rx="12" fill="#0b2d57"/>
+                <rect x="96" y="168" width="24" height="42" rx="12" fill="#0b2d57"/>
+                <rect x="49" y="199" width="42" height="21" rx="10" fill="url(#tgBody)" stroke="#c8d8e8" stroke-width="3"/>
+                <rect x="91" y="199" width="42" height="21" rx="10" fill="url(#tgBody)" stroke="#c8d8e8" stroke-width="3"/>
+                <circle cx="90" cy="115" r="4" fill="#ff6500"/>
+            </g>
+        </svg>`;
+
+    function htmlMascoteTG(classe) {
+        return `<span class="${classe || ''} tg-mascote-svg">${svgMascoteTG}</span>`;
+    }
+
+    const ACOES_TG = [
+        {
+            id: 'nova-os', titulo: 'Criar nova OS', icone: 'fa-clipboard-list',
+            descricao: 'Abre uma nova Ordem de Serviço.',
+            termos: ['criar os','nova os','ordem de servico','ordem servico','assistencia','intervencao','mandar tecnico','enviar tecnico','servico cliente'],
+            executar: () => { abrirSecao('servicos'); setTimeout(() => { if (typeof abrirModal === 'function') abrirModal('servico', null); }, 180); }
+        },
+        {
+            id: 'os', titulo: 'Ordens de Serviço', icone: 'fa-screwdriver-wrench',
+            descricao: 'Consultar e acompanhar Ordens de Serviço.',
+            termos: ['os','ordens','ordens de servico','servicos','trabalhos','intervencoes','assistencias tecnicas'],
+            executar: () => abrirSecao('servicos')
+        },
+        {
+            id: 'agenda', titulo: 'Agenda / Planeamento', icone: 'fa-calendar-days',
+            descricao: 'Ver planeamento, marcações e trabalhos.',
+            termos: ['agenda','planeamento','planear','marcacao','marcacoes','calendario','quando vai tecnico','disponibilidade'],
+            executar: () => abrirSecao('agenda-obras')
+        },
+        {
+            id: 'novo-cliente', titulo: 'Criar cliente', icone: 'fa-user-plus',
+            descricao: 'Adicionar um novo cliente.',
+            termos: ['novo cliente','criar cliente','adicionar cliente','registar cliente'],
+            executar: () => { abrirSecao('clientes'); setTimeout(() => { if (typeof abrirModal === 'function') abrirModal('cliente', null); }, 180); }
+        },
+        {
+            id: 'clientes', titulo: 'Clientes', icone: 'fa-address-book',
+            descricao: 'Consultar clientes, locais e informação associada.',
+            termos: ['cliente','clientes','contactos cliente','morada cliente','ficha cliente','historico cliente'],
+            executar: () => abrirSecao('clientes')
+        },
+        {
+            id: 'novo-funcionario', titulo: 'Adicionar colaborador', icone: 'fa-user-plus',
+            descricao: 'Criar um novo colaborador ou utilizador.',
+            termos: ['novo funcionario','novo colaborador','adicionar funcionario','adicionar colaborador','criar funcionario','criar colaborador'],
+            executar: () => { abrirSecao('funcionarios'); setTimeout(() => { if (typeof abrirModal === 'function') abrirModal('funcionario', null); }, 180); }
+        },
+        {
+            id: 'equipas', titulo: 'Gestão de Equipas', icone: 'fa-users',
+            descricao: 'Colaboradores, equipas e respetiva gestão.',
+            termos: ['equipa','equipas','funcionario','funcionarios','colaborador','colaboradores','pessoal','trabalhadores'],
+            executar: () => abrirSecao('funcionarios')
+        },
+        {
+            id: 'ponto', titulo: 'Registo de Ponto', icone: 'fa-clock',
+            descricao: 'Assiduidade, entradas e saídas.',
+            termos: ['ponto','assiduidade','picar ponto','entrada','saida','horas funcionario','presencas','atrasos'],
+            executar: () => abrirSecao('ponto')
+        },
+        {
+            id: 'ferias', titulo: 'Férias e Faltas', icone: 'fa-umbrella-beach',
+            descricao: 'Pedidos de férias, faltas e licenças.',
+            termos: ['ferias','falta','faltas','licenca','licencas','ausencia','ausencias','pedido ferias'],
+            executar: () => abrirSecao('pedidos')
+        },
+        {
+            id: 'contratos', titulo: 'Contratos / Manutenção', icone: 'fa-file-signature',
+            descricao: 'Contratos, equipamentos e próximas manutenções.',
+            termos: ['contrato','contratos','manutencao','manutencoes','preventiva','preventivas','equipamento','equipamentos','proxima manutencao'],
+            executar: () => abrirSecao('contratos')
+        },
+        {
+            id: 'novo-contrato', titulo: 'Criar contrato', icone: 'fa-file-circle-plus',
+            descricao: 'Abrir um novo contrato de manutenção.',
+            termos: ['novo contrato','criar contrato','adicionar contrato','contrato manutencao'],
+            executar: () => { abrirSecao('contratos'); setTimeout(() => { if (typeof abrirModalContrato === 'function') abrirModalContrato(null); }, 180); }
+        },
+        {
+            id: 'obras', titulo: 'Obras', icone: 'fa-helmet-safety',
+            descricao: 'Gerir obras, custos, materiais e progresso.',
+            termos: ['obra','obras','projeto','projetos','obra longa','custos obra','progresso obra'],
+            executar: () => abrirSecao('obras-longa')
+        },
+        {
+            id: 'stock', titulo: 'Stock / Armazém', icone: 'fa-boxes-stacked',
+            descricao: 'Artigos, stock e movimentos de armazém.',
+            termos: ['stock','armazem','material','materiais','inventario','artigo','artigos','existencias'],
+            executar: () => abrirSecao('artigos')
+        },
+        {
+            id: 'encomendas', titulo: 'Encomendas', icone: 'fa-cart-flatbed',
+            descricao: 'Consultar compras e encomendas.',
+            termos: ['encomenda','encomendas','compras','pedido fornecedor','fornecedor','fornecedores'],
+            executar: () => abrirSecao('encomendas')
+        },
+        {
+            id: 'frota', titulo: 'Frota', icone: 'fa-van-shuttle',
+            descricao: 'Viaturas, documentos, custos e manutenções.',
+            termos: ['frota','viatura','viaturas','carro','carrinha','veiculo','veiculos','seguro viatura','inspecao viatura'],
+            executar: () => abrirSecao('frota')
+        },
+        {
+            id: 'crm', titulo: 'CRM Comercial', icone: 'fa-chart-line',
+            descricao: 'Leads, oportunidades, propostas e atividade comercial.',
+            termos: ['crm','lead','leads','venda','vendas','comercial','oportunidade','oportunidades','proposta','propostas','pipeline'],
+            executar: () => window.open('TOTALGEST_CRM.html', '_blank', 'noopener')
+        },
+        {
+            id: 'portal', titulo: 'Assistências / Portal Cliente', icone: 'fa-headset',
+            descricao: 'Pedidos de assistência enviados pelos clientes.',
+            termos: ['portal','portal cliente','pedido cliente','pedido assistencia','assistencias','ticket','tickets','suporte cliente'],
+            executar: () => window.open('TOTALGEST_ASSIST.html', '_blank', 'noopener')
+        },
+        {
+            id: 'relatorios', titulo: 'Relatórios', icone: 'fa-chart-column',
+            descricao: 'Indicadores e relatórios da operação.',
+            termos: ['relatorio','relatorios','estatistica','estatisticas','resultado','resultados','indicadores','kpi','kpis','produtividade'],
+            executar: () => abrirSecao('relatorio-os')
+        },
+        {
+            id: 'financeiro', titulo: 'Financeiro / Faturação', icone: 'fa-file-invoice-euro',
+            descricao: 'Consultar a área financeira e faturação.',
+            termos: ['fatura','faturas','faturacao','financeiro','receita','despesa','despesas','pagamento','pagamentos'],
+            executar: () => abrirSecao('financeiro')
+        },
+        {
+            id: 'licenca', titulo: 'Minha Licença', icone: 'fa-key',
+            descricao: 'Plano, add-ons e validade da licença.',
+            termos: ['licenca','plano','addon','add on','renovar','renovacao','subscricao','mensalidade'],
+            executar: () => abrirSecao('minha-licenca')
+        },
+        {
+            id: 'inicio', titulo: 'Ir para o Início', icone: 'fa-house',
+            descricao: 'Voltar ao painel principal da Total Gest.',
+            termos: ['inicio','home','dashboard','painel principal','pagina inicial'],
+            executar: () => { if (typeof irParaInicio === 'function') irParaInicio(); }
+        }
+    ];
+
+    const SUGESTOES_CONTEXTO_TG = {
+        servicos: ['nova-os','agenda','clientes','stock'],
+        'agenda-obras': ['nova-os','os','equipas','clientes'],
+        clientes: ['novo-cliente','nova-os','contratos','portal'],
+        funcionarios: ['novo-funcionario','ponto','ferias','agenda'],
+        ponto: ['equipas','ferias','relatorios'],
+        pedidos: ['ponto','equipas','agenda'],
+        contratos: ['novo-contrato','nova-os','clientes','relatorios'],
+        'obras-longa': ['stock','encomendas','equipas','relatorios'],
+        obras: ['stock','encomendas','equipas','relatorios'],
+        artigos: ['encomendas','obras','relatorios'],
+        encomendas: ['stock','obras','financeiro'],
+        frota: ['agenda','relatorios','equipas'],
+        financeiro: ['relatorios','clientes','contratos'],
+        '__inicio': ['nova-os','novo-cliente','agenda','relatorios']
+    };
+
+    function pontuarAcaoTG(acao, pergunta) {
+        const q = normalizarTG(pergunta);
+        if (!q) return 0;
+        let score = 0;
+        for (const termoRaw of (acao.termos || [])) {
+            const termo = normalizarTG(termoRaw);
+            if (!termo) continue;
+            if (q === termo) score += 14;
+            else if (q.includes(termo)) score += termo.includes(' ') ? 9 : 4;
+            else {
+                const palavras = termo.split(' ').filter(p => p.length > 2);
+                const comuns = palavras.filter(p => q.includes(p)).length;
+                score += comuns * 1.5;
+            }
+        }
+        const titulo = normalizarTG(acao.titulo);
+        if (q.includes(titulo)) score += 8;
+        return score;
+    }
+
+    function procurarAcoesTG(pergunta) {
+        return ACOES_TG
+            .map(a => ({ ...a, score: pontuarAcaoTG(a, pergunta) }))
+            .filter(a => a.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 5);
+    }
+
+    function acaoPorIdTG(id) { return ACOES_TG.find(a => a.id === id); }
+
+    function sugestoesContextoTG() {
+        const contexto = (typeof _contextoAtual !== 'undefined' && _contextoAtual) ? _contextoAtual : '__inicio';
+        const ids = SUGESTOES_CONTEXTO_TG[contexto] || SUGESTOES_CONTEXTO_TG.__inicio;
+        return ids.map(acaoPorIdTG).filter(Boolean);
+    }
+
+    function criarEstilosTG() {
+        if (document.getElementById('tg-assistente-style')) return;
+        const st = document.createElement('style');
+        st.id = 'tg-assistente-style';
+        st.textContent = `
+            #tgAssistenteRoot{position:fixed;right:20px;bottom:18px;z-index:99990;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#102a4e}
+            #tgAssistenteRoot *{box-sizing:border-box}
+            .tg-ass-launcher{position:relative;width:112px;height:142px;border:0;background:transparent;padding:0;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 13px 15px rgba(2,28,62,.23));animation:tgMascoteFlutuar 3.1s ease-in-out infinite;transform-origin:50% 100%}
+            .tg-ass-launcher:hover{animation-play-state:paused;transform:translateY(-4px) scale(1.035)}
+            .tg-ass-launcher .tg-mascote-svg,.tg-ass-launcher .tg-mascote-img{width:108px;height:138px;display:block;object-fit:contain}
+            .tg-mascote-svg svg{width:100%;height:100%;display:block}
+            @keyframes tgMascoteFlutuar{0%,100%{transform:translateY(0) rotate(-.5deg)}50%{transform:translateY(-10px) rotate(.7deg)}}
+            .tg-ass-ponto{position:absolute;right:6px;top:17px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #fff;box-shadow:0 0 0 4px rgba(34,197,94,.13)}
+            .tg-ass-balao{position:absolute;right:96px;bottom:76px;width:210px;background:#fff;border:1px solid #dce6f1;border-radius:18px 18px 4px 18px;padding:12px 14px;box-shadow:0 14px 35px rgba(10,46,84,.18);font-size:13px;line-height:1.35;font-weight:650;color:#0b2d57;opacity:0;transform:translateY(8px) scale(.96);pointer-events:none;transition:.24s ease}
+            .tg-ass-balao.visivel{opacity:1;transform:translateY(0) scale(1)}
+            .tg-ass-balao strong{color:#ff6500}
+            .tg-ass-window{position:absolute;right:2px;bottom:135px;width:390px;max-height:min(630px,calc(100vh - 165px));background:#fff;border:1px solid #dce6f1;border-radius:22px;box-shadow:0 24px 70px rgba(2,32,72,.26);overflow:hidden;display:none;flex-direction:column;transform-origin:bottom right}
+            .tg-ass-window.aberto{display:flex;animation:tgAssAbrir .22s ease-out}
+            @keyframes tgAssAbrir{from{opacity:0;transform:translateY(15px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+            .tg-ass-head{min-height:74px;background:linear-gradient(135deg,#082c59 0%,#0c4f8e 100%);color:#fff;display:flex;align-items:center;gap:11px;padding:12px 14px}
+            .tg-ass-avatar{width:53px;height:53px;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.16);flex:0 0 auto}
+            .tg-ass-avatar .tg-mascote-svg,.tg-ass-avatar .tg-mascote-img{width:48px;height:58px;display:block;object-fit:contain}
+            .tg-ass-head-info{min-width:0;flex:1}.tg-ass-head-info b{display:block;font-size:16px;letter-spacing:.1px}.tg-ass-head-info span{display:block;font-size:11.5px;color:#cfe7ff;margin-top:2px}
+            .tg-ass-fechar{border:0;background:rgba(255,255,255,.12);color:#fff;width:35px;height:35px;border-radius:11px;cursor:pointer;font-size:20px;display:grid;place-items:center}.tg-ass-fechar:hover{background:rgba(255,255,255,.22)}
+            .tg-ass-body{flex:1;min-height:270px;overflow:auto;padding:16px;background:linear-gradient(180deg,#f5f9fe 0%,#fff 100%);scroll-behavior:smooth}
+            .tg-ass-msg{max-width:87%;padding:11px 13px;border-radius:15px;font-size:13.3px;line-height:1.45;margin:0 0 10px;box-shadow:0 2px 7px rgba(15,45,75,.05)}
+            .tg-ass-msg.bot{background:#fff;border:1px solid #dfe8f1;border-bottom-left-radius:5px}.tg-ass-msg.user{margin-left:auto;background:#0c4f8e;color:#fff;border-bottom-right-radius:5px}
+            .tg-ass-msg .tg-laranja{color:#ff6500;font-weight:800}
+            .tg-ass-contexto{font-size:11px;color:#64748b;margin:4px 2px 9px;display:flex;align-items:center;gap:5px}
+            .tg-ass-opcoes{display:grid;gap:8px;margin:9px 0 14px}
+            .tg-ass-opcao{width:100%;border:1px solid #dde7f1;background:#fff;border-radius:13px;padding:10px 11px;text-align:left;display:grid;grid-template-columns:34px 1fr 18px;align-items:center;gap:9px;cursor:pointer;transition:.16s ease;color:#102a4e}
+            .tg-ass-opcao:hover{transform:translateY(-1px);border-color:#ff8b3d;box-shadow:0 7px 18px rgba(14,61,107,.10)}
+            .tg-ass-opcao-ic{width:34px;height:34px;border-radius:10px;background:#edf6ff;color:#0c4f8e;display:grid;place-items:center;font-size:14px}.tg-ass-opcao:nth-child(2n) .tg-ass-opcao-ic{background:#fff2e8;color:#f45d00}
+            .tg-ass-opcao b{display:block;font-size:13.1px}.tg-ass-opcao small{display:block;color:#64748b;font-size:11.2px;line-height:1.25;margin-top:2px}.tg-ass-opcao>.fa-chevron-right{color:#a8b6c7;font-size:11px}
+            .tg-ass-chips{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0 13px}.tg-ass-chip{border:1px solid #d9e4ef;background:#fff;color:#0c4f8e;border-radius:999px;padding:7px 10px;font-size:11.3px;font-weight:650;cursor:pointer}.tg-ass-chip:hover{background:#eef6ff;border-color:#b9d8f3}
+            .tg-ass-input-wrap{border-top:1px solid #e3eaf2;background:#fff;padding:11px;display:flex;gap:8px;align-items:center}.tg-ass-input{flex:1;min-width:0;border:1px solid #d7e1eb;border-radius:13px;padding:11px 12px;font-size:13px;outline:0;color:#0f2747}.tg-ass-input:focus{border-color:#4294d2;box-shadow:0 0 0 3px rgba(66,148,210,.11)}
+            .tg-ass-enviar{border:0;background:#ff6500;color:#fff;width:43px;height:43px;border-radius:13px;cursor:pointer;display:grid;place-items:center;font-size:15px;box-shadow:0 6px 14px rgba(255,101,0,.2)}.tg-ass-enviar:hover{background:#e95d00}
+            .tg-ass-footnote{text-align:center;font-size:9.8px;color:#94a3b8;padding:0 11px 8px;background:#fff}
+            body.dark-mode .tg-ass-window{background:#102033;border-color:#29415a}.dark-mode .tg-ass-body{background:linear-gradient(180deg,#14263a,#0e1b2a)}.dark-mode .tg-ass-msg.bot,.dark-mode .tg-ass-opcao,.dark-mode .tg-ass-chip{background:#172a3e;color:#e7f0fa;border-color:#2b435c}.dark-mode .tg-ass-opcao small,.dark-mode .tg-ass-contexto{color:#9fb2c6}.dark-mode .tg-ass-input-wrap,.dark-mode .tg-ass-footnote{background:#102033;border-color:#29415a}.dark-mode .tg-ass-input{background:#172a3e;border-color:#2b435c;color:#fff}
+            @media(max-width:640px){#tgAssistenteRoot{right:9px;bottom:9px}.tg-ass-launcher{width:88px;height:112px}.tg-ass-launcher .tg-mascote-svg,.tg-ass-launcher .tg-mascote-img{width:86px;height:109px}.tg-ass-balao{right:77px;bottom:59px;width:188px;font-size:12px}.tg-ass-window{position:fixed;left:8px;right:8px;bottom:8px;width:auto;max-height:82vh;border-radius:19px}.tg-ass-head{min-height:68px}.tg-ass-body{min-height:250px}}
+        `;
+        document.head.appendChild(st);
+    }
+
+    function criarMascoteElementoTG(classe) {
+        const wrap = document.createElement('span');
+        wrap.className = classe || '';
+        const img = new Image();
+        img.className = 'tg-mascote-img';
+        img.dataset.tgMascote = '1';
+        img.alt = 'TG - mascote da Total Gest';
+        img.src = TG_CONFIG.mascoteUrl;
+        img.onload = () => { wrap.innerHTML = ''; wrap.appendChild(img); };
+        img.onerror = () => { wrap.innerHTML = svgMascoteTG; wrap.classList.add('tg-mascote-svg'); };
+        wrap.appendChild(img);
+        return wrap;
+    }
+
+    let rootTG, janelaTG, corpoTG, inputTG, balaoTG;
+    let _tgEstado = 'idle';
+    let _tgEstadoTimer = null;
+    let _tgTemAlertas = false;
+
+    function _tgImgs() {
+        return rootTG ? [...rootTG.querySelectorAll('img[data-tg-mascote="1"], .tg-mascote-img')] : [];
+    }
+
+    function _tgDefinirEstado(estado, duracaoMs) {
+        const url = TG_CONFIG.mascotes?.[estado] || TG_CONFIG.mascoteUrl;
+        if (!url) return;
+        _tgEstado = estado;
+
+        _tgImgs().forEach(img => {
+            img.dataset.tgEstado = estado;
+            img.src = url;
+        });
+
+        if (_tgEstadoTimer) clearTimeout(_tgEstadoTimer);
+        _tgEstadoTimer = null;
+
+        if (duracaoMs) {
+            _tgEstadoTimer = setTimeout(() => {
+                _tgEstadoTimer = null;
+                _tgRestaurarEstadoBase();
+            }, duracaoMs);
+        }
+    }
+
+    function _tgRestaurarEstadoBase() {
+        _tgDefinirEstado(_tgTemAlertas ? 'alerta' : 'idle');
+    }
+
+    function _tgMostrarBalao(html, ms = 1800) {
+        if (!balaoTG) return;
+        balaoTG.innerHTML = html;
+        balaoTG.classList.add('visivel');
+        clearTimeout(balaoTG._tgTimer);
+        balaoTG._tgTimer = setTimeout(() => balaoTG?.classList.remove('visivel'), ms);
+    }
+
+    function _tgAtualizarAlertas() {
+        let tem = false;
+        try {
+            const lista = (typeof dados !== 'undefined' && Array.isArray(dados?.notificacoes)) ? dados.notificacoes : [];
+            if (lista.length && typeof usuarioLogado !== 'undefined' && usuarioLogado) {
+                tem = lista.some(n => {
+                    if (n?.lida === true) return false;
+                    if (usuarioLogado.role === 'superadmin') return true;
+                    if (!n?.destinatarioId && !n?.adminId) return true;
+                    return n.destinatarioId === usuarioLogado.id ||
+                           n.adminId === usuarioLogado.id ||
+                           n.adminId === usuarioLogado.adminId;
+                });
+            }
+            if (!tem && document.querySelector('#tgSidebarNav .tg-luz-vermelho, #tgSidebarNav .tg-luz-amarelo')) {
+                tem = true;
+            }
+        } catch (e) {}
+
+        const mudou = tem !== _tgTemAlertas;
+        _tgTemAlertas = tem;
+
+        const ponto = rootTG?.querySelector('.tg-ass-ponto');
+        if (ponto) {
+            ponto.style.background = tem ? '#ff6500' : '#22c55e';
+            ponto.style.boxShadow = tem
+                ? '0 0 0 4px rgba(255,101,0,.16),0 0 14px rgba(255,101,0,.45)'
+                : '0 0 0 4px rgba(34,197,94,.13)';
+        }
+
+        const launcher = document.getElementById('tgAssistenteLauncher');
+        if (mudou && tem && launcher && !launcher.matches(':hover') && !janelaTG?.classList.contains('aberto')) {
+            _tgDefinirEstado('alerta');
+            _tgMostrarBalao('<strong>Tem avisos por verificar.</strong><br>Posso ajudá-lo a encontrá-los.', 3300);
+        } else if (!tem && _tgEstado === 'alerta') {
+            _tgRestaurarEstadoBase();
+        }
+    }
+
+    function _tgEstadoSucesso(ms = 1500) {
+        _tgDefinirEstado('sucesso', ms);
+    }
+
+    function _tgEstadoConcluido(ms = 1600) {
+        _tgDefinirEstado('concluido', ms);
+    }
+
+
+    function adicionarMensagemTG(texto, tipo) {
+        if (!corpoTG) return;
+        const el = document.createElement('div');
+        el.className = `tg-ass-msg ${tipo === 'user' ? 'user' : 'bot'}`;
+        el.textContent = texto;
+        corpoTG.appendChild(el);
+        corpoTG.scrollTop = corpoTG.scrollHeight;
+        return el;
+    }
+
+    function adicionarMensagemHtmlTG(html) {
+        if (!corpoTG) return;
+        const el = document.createElement('div');
+        el.className = 'tg-ass-msg bot';
+        el.innerHTML = html;
+        corpoTG.appendChild(el);
+        corpoTG.scrollTop = corpoTG.scrollHeight;
+        return el;
+    }
+
+    function mostrarOpcoesTG(acoes, textoContexto) {
+        if (!corpoTG || !acoes?.length) return;
+        if (textoContexto) {
+            const ctx = document.createElement('div');
+            ctx.className = 'tg-ass-contexto';
+            ctx.innerHTML = `<i class="fas fa-wand-magic-sparkles"></i><span>${textoContexto}</span>`;
+            corpoTG.appendChild(ctx);
+        }
+        const lista = document.createElement('div');
+        lista.className = 'tg-ass-opcoes';
+        acoes.forEach(acao => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'tg-ass-opcao';
+            btn.innerHTML = `<span class="tg-ass-opcao-ic"><i class="fas ${acao.icone || 'fa-arrow-right'}"></i></span><span><b>${acao.titulo}</b><small>${acao.descricao || ''}</small></span><i class="fas fa-chevron-right"></i>`;
+            btn.onclick = () => {
+                adicionarMensagemTG(`Abrir: ${acao.titulo}`, 'user');
+                _tgEstadoConcluido(1350);
+                setTimeout(() => {
+                    try { acao.executar(); }
+                    catch (e) {
+                        console.error('TG Assistente:', e);
+                        adicionarMensagemTG('Não consegui abrir essa área. Tente através do menu principal.', 'bot');
+                        _tgDefinirEstado('alerta', 1800);
+                    }
+                    setTimeout(() => fecharTG(false), 500);
+                }, 220);
+            };
+            lista.appendChild(btn);
+        });
+        corpoTG.appendChild(lista);
+        corpoTG.scrollTop = corpoTG.scrollHeight;
+    }
+
+    function mostrarChipsTG() {
+        if (!corpoTG) return;
+        const chips = document.createElement('div');
+        chips.className = 'tg-ass-chips';
+        [
+            ['Criar uma OS','nova-os'],
+            ['Ver clientes','clientes'],
+            ['Gerir equipa','equipas'],
+            ['Manutenções','contratos']
+        ].forEach(([txt,id]) => {
+            const b = document.createElement('button');
+            b.type = 'button'; b.className = 'tg-ass-chip'; b.textContent = txt;
+            b.onclick = () => { const a = acaoPorIdTG(id); if (a) mostrarOpcoesTG([a]); };
+            chips.appendChild(b);
+        });
+        corpoTG.appendChild(chips);
+    }
+
+    function processarPerguntaTG(pergunta) {
+        const q = String(pergunta || '').trim();
+        if (!q) return;
+
+        adicionarMensagemTG(q, 'user');
+        _tgDefinirEstado('pensar');
+
+        setTimeout(() => {
+            const nq = normalizarTG(q);
+
+            if (/^(ola|bom dia|boa tarde|boa noite|oi|hey)\b/.test(nq)) {
+                adicionarMensagemHtmlTG('Olá! 👋 Diga-me o que pretende fazer na <span class="tg-laranja">Total Gest</span> e eu levo-o diretamente para a área certa.');
+                _tgDefinirEstado('ola', 1500);
+                mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Sugestões para a área onde está');
+                return;
+            }
+
+            if (/ajuda|o que podes|que podes|como funciona/.test(nq)) {
+                adicionarMensagemTG('Posso ajudar a encontrar áreas e ações dentro da plataforma. Por exemplo: criar uma OS, ver clientes, consultar manutenções, stock, equipa, ponto, frota ou relatórios.', 'bot');
+                _tgDefinirEstado('sugestao', 1900);
+                mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Pode começar por aqui');
+                return;
+            }
+
+            const resultados = procurarAcoesTG(q);
+
+            if (!resultados.length) {
+                adicionarMensagemTG('Não encontrei uma opção exata. Escolha uma destas áreas ou escreva de outra forma o que pretende fazer.', 'bot');
+                _tgDefinirEstado('sugestao', 1900);
+                mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Sugestões');
+                return;
+            }
+
+            if (resultados.length === 1 || (resultados[0].score >= 10 && resultados[0].score >= (resultados[1]?.score || 0) + 5)) {
+                adicionarMensagemTG('Encontrei esta opção:', 'bot');
+                _tgEstadoSucesso(1700);
+                mostrarOpcoesTG([resultados[0]]);
+            } else {
+                adicionarMensagemTG('Penso que procura uma destas opções:', 'bot');
+                _tgDefinirEstado('sugestao', 1800);
+                mostrarOpcoesTG(resultados.slice(0,4));
+            }
+        }, 620);
+    }
+
+    function abrirTG() {
+        if (!janelaTG) return;
+        janelaTG.classList.add('aberto');
+        if (balaoTG) balaoTG.classList.remove('visivel');
+        _tgDefinirEstado('chat', 1700);
+        try { localStorage.setItem('tg_assistente_aberto_uma_vez', '1'); } catch (e) {}
+        setTimeout(() => inputTG?.focus(), 80);
+        // Atualiza as sugestões conforme a secção atual, sem apagar a conversa.
+        if (corpoTG && corpoTG.dataset.iniciado !== '1') {
+            corpoTG.dataset.iniciado = '1';
+            adicionarMensagemHtmlTG(`<b>${TG_CONFIG.saudacao}</b><br>${TG_CONFIG.pergunta}`);
+            mostrarChipsTG();
+            mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Atalhos recomendados');
+        }
+    }
+
+    function fecharTG(limpar) {
+        if (!janelaTG) return;
+        janelaTG.classList.remove('aberto');
+        _tgDefinirEstado('adeus', 1800);
+        _tgMostrarBalao('<strong>Até já! 👋</strong><br>Quando precisar, estou por aqui.', 1700);
+        if (limpar && corpoTG) { corpoTG.innerHTML = ''; corpoTG.dataset.iniciado = '0'; }
+    }
+
+    function montarTG() {
+        if (document.getElementById('tgAssistenteRoot')) return;
+        criarEstilosTG();
+        rootTG = document.createElement('div');
+        rootTG.id = 'tgAssistenteRoot';
+        rootTG.innerHTML = `
+            <div class="tg-ass-balao" id="tgAssistenteBalao"><strong>Olá! Sou o TG.</strong><br>Em que posso ajudar?</div>
+            <div class="tg-ass-window" id="tgAssistenteJanela" role="dialog" aria-label="Assistente TG">
+                <div class="tg-ass-head">
+                    <div class="tg-ass-avatar" id="tgAssistenteAvatar"></div>
+                    <div class="tg-ass-head-info"><b>${TG_CONFIG.nome}</b><span>${TG_CONFIG.titulo}</span></div>
+                    <button type="button" class="tg-ass-fechar" id="tgAssistenteFechar" aria-label="Fechar"><i class="fas fa-xmark"></i></button>
+                </div>
+                <div class="tg-ass-body" id="tgAssistenteMensagens"></div>
+                <form class="tg-ass-input-wrap" id="tgAssistenteForm">
+                    <input class="tg-ass-input" id="tgAssistenteInput" autocomplete="off" placeholder="Escreva o que precisa..." aria-label="Escreva o que precisa">
+                    <button class="tg-ass-enviar" type="submit" aria-label="Enviar"><i class="fas fa-paper-plane"></i></button>
+                </form>
+                <div class="tg-ass-footnote">O TG ajuda-o a navegar na Total Gest.</div>
+            </div>
+            <button type="button" class="tg-ass-launcher" id="tgAssistenteLauncher" aria-label="Abrir TG, assistente da Total Gest"><span class="tg-ass-ponto"></span></button>
+        `;
+        document.body.appendChild(rootTG);
+        janelaTG = document.getElementById('tgAssistenteJanela');
+        corpoTG = document.getElementById('tgAssistenteMensagens');
+        inputTG = document.getElementById('tgAssistenteInput');
+        balaoTG = document.getElementById('tgAssistenteBalao');
+
+        const avatar = document.getElementById('tgAssistenteAvatar');
+        const launcher = document.getElementById('tgAssistenteLauncher');
+        avatar?.appendChild(criarMascoteElementoTG(''));
+        launcher?.appendChild(criarMascoteElementoTG(''));
+
+        launcher?.addEventListener('mouseenter', () => {
+            if (janelaTG?.classList.contains('aberto')) return;
+            _tgDefinirEstado('ola');
+            _tgMostrarBalao('<strong>Olá! 👋</strong><br>Em que posso ajudar?', 1600);
+        });
+
+        launcher?.addEventListener('mouseleave', () => {
+            if (janelaTG?.classList.contains('aberto')) return;
+            _tgRestaurarEstadoBase();
+        });
+
+        launcher?.addEventListener('click', () => janelaTG?.classList.contains('aberto') ? fecharTG(false) : abrirTG());
+        document.getElementById('tgAssistenteFechar')?.addEventListener('click', () => fecharTG(false));
+        document.getElementById('tgAssistenteForm')?.addEventListener('submit', ev => {
+            ev.preventDefault();
+            const valor = inputTG?.value || '';
+            if (!valor.trim()) return;
+            if (inputTG) inputTG.value = '';
+            processarPerguntaTG(valor);
+        });
+
+        // Fecha com ESC.
+        document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && janelaTG?.classList.contains('aberto')) fecharTG(false); });
+
+        // Primeiro contacto visual: o TG apresenta-se discretamente após alguns segundos.
+        let jaViu = false;
+        try { jaViu = localStorage.getItem('tg_assistente_aberto_uma_vez') === '1'; } catch (e) {}
+        if (!jaViu) {
+            setTimeout(() => {
+                if (!janelaTG?.classList.contains('aberto')) {
+                    _tgDefinirEstado('ola', 2200);
+                    _tgMostrarBalao('<strong>Olá! Sou o TG. 👋</strong><br>Em que posso ajudar?', 6500);
+                }
+            }, 2600);
+        }
+
+        _tgAtualizarAlertas();
+        if (!window.__TG_ALERTAS_INTERVAL__) {
+            window.__TG_ALERTAS_INTERVAL__ = setInterval(_tgAtualizarAlertas, 5000);
+        }
+
+        if (!window.__TG_ALERT_WRAP__) {
+            window.__TG_ALERT_WRAP__ = true;
+            const _alertTGAnterior = window.alert;
+            window.alert = function(msg) {
+                const texto = String(msg || '');
+                try {
+                    if (/✅|sucesso|conclu[ií]d|guardad[oa]|criad[oa]|atualizad[oa]|aprovad[oa]/i.test(texto)) {
+                        _tgEstadoConcluido(1700);
+                    } else if (/⚠️|aten[cç][aã]o|aviso|erro|falhou|falha|❌/i.test(texto)) {
+                        _tgDefinirEstado('alerta', 1900);
+                    }
+                } catch (e) {}
+                return _alertTGAnterior ? _alertTGAnterior.apply(this, arguments) : undefined;
+            };
+        }
+    }
+
+    // API pequena para poderes chamar o TG de outros pontos da aplicação.
+    window.TGAssistente = {
+        abrir: abrirTG,
+        fechar: () => fecharTG(false),
+        perguntar: (texto) => { abrirTG(); setTimeout(() => processarPerguntaTG(texto), 80); },
+        mostrarAcao: (id) => { const a = acaoPorIdTG(id); if (!a) return; abrirTG(); setTimeout(() => { _tgDefinirEstado('sugestao', 1600); mostrarOpcoesTG([a]); }, 80); },
+        estado: (estado, ms) => _tgDefinirEstado(estado, ms),
+        alerta: () => { _tgTemAlertas = true; _tgDefinirEstado('alerta'); },
+        concluir: () => _tgEstadoConcluido(1700),
+        sucesso: () => _tgEstadoSucesso(1600),
+        atualizarAlertas: _tgAtualizarAlertas,
+        configurarMascote: (url) => { TG_CONFIG.mascoteUrl = url || TG_CONFIG.mascoteUrl; }
+    };
+
+    function sincronizarTGAssistente() {
+        const autenticado = (typeof usuarioLogado !== 'undefined' && !!usuarioLogado);
+        const root = document.getElementById('tgAssistenteRoot');
+
+        if (!autenticado) {
+            if (root) root.remove();
+            return;
+        }
+
+        if (!root) montarTG();
+        else {
+            root.style.display = '';
+            if (typeof _tgAtualizarAlertas === 'function') _tgAtualizarAlertas();
+        }
+    }
+
+    window.sincronizarTGAssistente = sincronizarTGAssistente;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', sincronizarTGAssistente, { once: true });
+    } else {
+        setTimeout(sincronizarTGAssistente, 0);
+    }
+})();
+</script>
+function atualizarLanding(){
+    var autenticado=(typeof usuarioLogado!=='undefined'&&!!usuarioLogado);
+    var l=document.getElementById('tg-landing');
+    if(l)l.style.display=autenticado?'none':'block';
+
+    /* O assistente TG não existe no login; aparece automaticamente dentro da APP. */
+    if(typeof window.sincronizarTGAssistente==='function'){
+        window.sincronizarTGAssistente();
+    }
+}
 async function loginLanding(e){e.preventDefault();var em=document.getElementById('landEmail').value;var pw=document.getElementById('landSenha').value;document.getElementById('loginEmail').value=em;document.getElementById('loginSenha').value=pw;return login(e);}
 
 // Poupa espaço no ficheiro: o logo só está gravado uma vez (no cabeçalho);
