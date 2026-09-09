@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Histórico do Equipamento — Total Gest</title>
+<link rel="icon" href="logo-totalgest.png">
+<style>
+    * { box-sizing: border-box; }
+    body {
+        margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+        background: #f1f5f9; color: #1e293b; min-height: 100vh;
+        display: flex; flex-direction: column; align-items: center;
+    }
+    .topo { text-align: center; padding: 34px 16px 20px; }
+    .topo img { width: 76px; height: 76px; border-radius: 16px; }
+    .topo .marca { margin-top: 8px; font-weight: 800; font-size: 1.3rem; color: #152A52; }
+    .topo .url { color: #94a3b8; font-size: .85rem; margin-top: 2px; }
+
+    /* ---------- Login Parceiro ---------- */
+    .login-card {
+        background: #fff; border-radius: 18px; padding: 30px 26px; max-width: 380px; width: calc(100% - 32px);
+        box-shadow: 0 6px 28px rgba(15,23,42,.08); margin-top: 6px;
+    }
+    .login-card h1 { font-size: 1.1rem; font-weight: 800; color: #152A52; text-align: center; margin: 0 0 4px; }
+    .login-card .sub { text-align: center; color: #64748b; font-size: .84rem; margin-bottom: 22px; }
+    .campo { margin-bottom: 14px; }
+    .campo label { display: block; font-size: .78rem; font-weight: 700; color: #334155; margin-bottom: 5px; }
+    .campo input {
+        width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+        font-size: .95rem; outline: none;
+    }
+    .campo input:focus { border-color: #F4520E; }
+    .btn-entrar {
+        width: 100%; padding: 13px; background: #F4520E; color: #fff; border: none; border-radius: 10px;
+        font-weight: 700; font-size: .95rem; cursor: pointer; margin-top: 6px;
+    }
+    .btn-entrar:disabled { opacity: .6; cursor: default; }
+    .erro-login { color: #dc2626; font-size: .82rem; text-align: center; margin-top: 12px; display: none; }
+
+    /* ---------- Ficha do equipamento ---------- */
+    .wrap { width: 100%; max-width: 640px; padding: 0 16px 40px; }
+    .card { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(15,23,42,.05); }
+    .card h2 { font-size: 1rem; font-weight: 800; color: #152A52; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+    .linha { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f1f5f9; font-size: .88rem; }
+    .linha:last-child { border-bottom: none; }
+    .linha .rot { color: #64748b; }
+    .linha .val { font-weight: 700; color: #152A52; text-align: right; }
+    .badge-garantia { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: .74rem; font-weight: 700; }
+    .badge-garantia.ok { background: #dcfce7; color: #166534; }
+    .badge-garantia.fora { background: #fee2e2; color: #991b1b; }
+    .badge-garantia.sem { background: #f1f5f9; color: #64748b; }
+
+    .evento { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+    .evento:last-child { border-bottom: none; }
+    .evento .ponto { width: 10px; height: 10px; border-radius: 50%; background: #0ea5e9; margin-top: 6px; flex-shrink: 0; }
+    .evento .ponto.corretiva { background: #dc2626; }
+    .evento .corpo { flex: 1; }
+    .evento .data { font-size: .74rem; color: #94a3b8; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .evento .data .seta { transition: transform .15s; }
+    .evento.aberto .data .seta { transform: rotate(90deg); }
+    .evento .titulo { font-weight: 700; color: #1e293b; font-size: .9rem; margin: 2px 0; }
+    .evento .tecnico { font-size: .82rem; color: #64748b; }
+    .evento .obs { font-size: .82rem; color: #475569; margin-top: 6px; display: none; background: #f8fafc; border-radius: 8px; padding: 8px 10px; }
+    .evento.aberto .obs { display: block; }
+    .erro-diag { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px 14px; font-size: .78rem; color: #991b1b; margin-top: 10px; text-align: left; white-space: pre-wrap; word-break: break-word; }
+
+    .vazio { text-align: center; color: #94a3b8; font-size: .85rem; padding: 20px 0; }
+    .carregando { text-align: center; color: #64748b; padding: 40px 16px; }
+    .sair { text-align: center; margin-top: 8px; }
+    .sair a { color: #94a3b8; font-size: .8rem; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="topo">
+    <img src="logo-totalgest.png" alt="Total Gest" onerror="this.style.display='none'">
+    <div class="marca">TOTAL GEST</div>
+    <div class="url">totalgest.pt</div>
+</div>
+
+<div id="areaLogin" class="login-card" style="display:none;">
+    <h1>Login Parceiro</h1>
+    <div class="sub">Usa o mesmo email e password da tua conta Total Gest</div>
+    <form id="formLogin">
+        <div class="campo"><label>Email</label><input type="email" id="loginEmail" required autocomplete="username" /></div>
+        <div class="campo"><label>Password</label><input type="password" id="loginSenha" required autocomplete="current-password" /></div>
+        <button type="submit" class="btn-entrar" id="btnEntrar">Entrar</button>
+        <div class="erro-login" id="erroLogin"></div>
+    </form>
+</div>
+
+<div id="areaCarregando" class="carregando" style="display:none;">A carregar…</div>
+
+<div id="areaFicha" class="wrap" style="display:none;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://rfniufasivfnrqfntzog.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmbml1ZmFzaXZmbnJxZm50em9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzI2MjcsImV4cCI6MjA5NzQ0ODYyN30.1hJ7JBpCKo-Wp93HM5skXVnYk3ghyC7mo0rubbvCXyI';
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const params = new URLSearchParams(window.location.search);
+const equipId = params.get('id');
+
+const EQUIP_TIPOS = { alarme: 'Alarme', cctv: 'CCTV', deteta_incendio: 'Deteção de Incêndio', extintor: 'Extintor', outro: 'Outro' };
+function fmtData(iso) { if (!iso) return '—'; const [a,m,d] = iso.split('-'); return d && m && a ? `${d}/${m}/${a}` : iso; }
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+async function iniciar() {
+    if (!equipId) {
+        document.getElementById('areaLogin').style.display = 'none';
+        document.getElementById('areaFicha').style.display = 'block';
+        document.getElementById('areaFicha').innerHTML = '<div class="card"><div class="vazio">Este link não é válido — falta identificar o equipamento.</div></div>';
+        return;
+    }
+    const { data: { session } } = await supa.auth.getSession();
+    if (session) {
+        carregarFicha();
+    } else {
+        document.getElementById('areaLogin').style.display = 'block';
+    }
+}
+
+document.getElementById('formLogin').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const senha = document.getElementById('loginSenha').value;
+    const btn = document.getElementById('btnEntrar');
+    const erroEl = document.getElementById('erroLogin');
+    erroEl.style.display = 'none';
+    btn.disabled = true; btn.textContent = 'A entrar…';
+    const { error } = await supa.auth.signInWithPassword({ email, password: senha });
+    btn.disabled = false; btn.textContent = 'Entrar';
+    if (error) {
+        erroEl.textContent = 'Email ou password incorretos.';
+        erroEl.style.display = 'block';
+        return;
+    }
+    document.getElementById('areaLogin').style.display = 'none';
+    carregarFicha();
+});
+
+async function carregarFicha() {
+    document.getElementById('areaCarregando').style.display = 'block';
+    try {
+        const { data: { session } } = await supa.auth.getSession();
+        if (!session) { document.getElementById('areaLogin').style.display = 'block'; document.getElementById('areaCarregando').style.display = 'none'; return; }
+
+        // Tudo montado do lado do servidor (Edge Function), com acesso total — evita por
+        // completo qualquer bloqueio de permissões (RLS) que pudesse impedir de ler
+        // locais/clientes diretamente a partir daqui.
+        const { data, error } = await supa.functions.invoke('historico-equipamento', { body: { equip_id: equipId } });
+        if (error || !data?.ok) {
+            const msg = data?.erro || error?.message || 'Erro desconhecido';
+            // O telemóvel pode ter guardado uma sessão que entretanto deixou de existir no
+            // servidor (ex.: login feito noutro sítio, sessão expirada/revogada) — a página
+            // ficava presa a mostrar o erro em bruto, sem voltar a pedir login sozinha. Sempre
+            // que o erro é de autenticação, termina essa sessão inválida e volta ao login.
+            const ehErroAutenticacao = /session_not_found|not authenticated|não autenticado|jwt|401|403/i.test(msg);
+            if (ehErroAutenticacao) {
+                await supa.auth.signOut().catch(() => {});
+                document.getElementById('areaCarregando').style.display = 'none';
+                document.getElementById('areaFicha').style.display = 'none';
+                document.getElementById('areaLogin').style.display = 'block';
+                document.getElementById('erroLogin').textContent = 'A tua sessão expirou — entra novamente.';
+                document.getElementById('erroLogin').style.display = 'block';
+                return;
+            }
+            document.getElementById('areaCarregando').style.display = 'none';
+            document.getElementById('areaFicha').style.display = 'block';
+            document.getElementById('areaFicha').innerHTML = `<div class="card"><div class="vazio">Não foi possível carregar o histórico.</div><div class="erro-diag">${escapeHtml(msg)}</div></div>`;
+            return;
+        }
+
+        const { equipamento: eq, local, cliente, registos, servicos: osLigadas, folhas, movimentosStock, artigos, funcionarios } = data;
+        const nomeTecnico = (id) => (funcionarios || []).find(f => f.id === id)?.nome || '—';
+        const nomeArtigo = (id) => (artigos || []).find(a => a.id === id) || null;
+
+        // Para cada OS, procura a respetiva Folha de Obra (trabalho realizado, materiais) — e,
+        // se a folha não tiver texto de materiais escrito, monta a lista a partir dos consumos
+        // reais de stock ligados a ela (mesma lógica do relatório em PDF da folha, na app).
+        const folhaDaOS = (servicoId) => (folhas || []).find(f => f.servico_id === servicoId) || null;
+        const materiaisDaFolha = (folha) => {
+            if (!folha) return null;
+            if (folha.materiais && folha.materiais.trim()) return folha.materiais.trim();
+            const consumidos = (movimentosStock || []).filter(m => m.origem_id === folha.id);
+            if (!consumidos.length) return null;
+            return consumidos.map(m => {
+                const art = nomeArtigo(m.artigo_id);
+                return `${art ? art.nome : '(artigo removido)'} — ${m.quantidade} ${art ? (art.unidade || 'un') : 'un'}`;
+            }).join('\n');
+        };
+
+        // Junta os dois históricos (registos_manutencao + OS ligadas ao equipamento) por data,
+        // mais recente primeiro. Cada evento só mostra o resumo ao clicar. O título mostra
+        // sempre a descrição real da OS/intervenção, não só um rótulo genérico.
+        const eventos = [
+            ...(registos || []).map(r => ({ data: r.data_realizacao, titulo: r.observacoes || 'Manutenção realizada', tecnico: nomeTecnico(r.tecnico_id), obs: r.observacoes, corretiva: false, folhaResumo: null })),
+            ...(osLigadas || []).map(s => {
+                const folha = folhaDaOS(s.id);
+                return {
+                    data: s.data,
+                    titulo: s.descricao || (s.origem === 'assistencia' ? 'Assistência' : 'Ordem de Serviço'),
+                    tecnico: nomeTecnico(folha?.funcionario_id ?? s.funcionario_id),
+                    obs: s.observacoes || s.descricao || null,
+                    corretiva: s.origem === 'assistencia',
+                    folhaResumo: folha ? {
+                        trabalho: folha.descricao || null,
+                        horas: folha.horas_trabalhadas || 0,
+                        materiais: materiaisDaFolha(folha),
+                    } : null,
+                };
+            }),
+        ].filter(e => e.data).sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+
+        const hoje = new Date().toISOString().slice(0, 10);
+        const garantiaBadge = !eq.garantia_ate ? '<span class="badge-garantia sem">Sem garantia registada</span>'
+            : eq.garantia_ate >= hoje ? '<span class="badge-garantia ok">Em garantia até ' + fmtData(eq.garantia_ate) + '</span>'
+            : '<span class="badge-garantia fora">Garantia terminou em ' + fmtData(eq.garantia_ate) + '</span>';
+
+        document.getElementById('areaCarregando').style.display = 'none';
+        const ficha = document.getElementById('areaFicha');
+        ficha.style.display = 'block';
+        ficha.innerHTML = `
+            <div class="card">
+                <h2>🔧 ${escapeHtml(EQUIP_TIPOS[eq.tipo] || eq.tipo)}${eq.marca ? ' — ' + escapeHtml(eq.marca) : ''}</h2>
+                <div class="linha"><span class="rot">Cliente</span><span class="val">${escapeHtml(cliente?.nome || '—')}</span></div>
+                <div class="linha"><span class="rot">Local</span><span class="val">${escapeHtml(local?.nome || '—')}</span></div>
+                <div class="linha"><span class="rot">Nº de série</span><span class="val">${escapeHtml(eq.numero_serie || '—')}</span></div>
+                <div class="linha"><span class="rot">Instalação/venda</span><span class="val">${fmtData(eq.data_instalacao)}</span></div>
+                <div class="linha"><span class="rot">Garantia</span><span class="val">${garantiaBadge}</span></div>
+                ${eq.observacoes ? `<div class="linha"><span class="rot">Observações</span><span class="val">${escapeHtml(eq.observacoes)}</span></div>` : ''}
+                ${(!cliente || !local) ? `<div class="linha" style="border-top:1px dashed #fde68a;margin-top:8px;padding-top:10px;"><span class="rot" style="color:#b45309;">⚠️ Este equipamento não tem Local associado — fala com o teu administrador para corrigir.</span></div>` : ''}
+            </div>
+            <div class="card">
+                <h2>📋 Histórico completo (${eventos.length})</h2>
+                ${eventos.length ? eventos.map((e, i) => `
+                    <div class="evento" onclick="this.classList.toggle('aberto')">
+                        <div class="ponto ${e.corretiva ? 'corretiva' : ''}"></div>
+                        <div class="corpo">
+                            <div class="data"><i class="fas fa-chevron-right seta"></i> ${fmtData(e.data)}</div>
+                            <div class="titulo">${escapeHtml(e.titulo)}</div>
+                            <div class="tecnico">👤 ${escapeHtml(e.tecnico)}</div>
+                            <div class="obs">
+                                ${e.folhaResumo ? `
+                                    ${e.folhaResumo.trabalho ? `<div><strong>Trabalho realizado:</strong><br>${escapeHtml(e.folhaResumo.trabalho)}</div>` : ''}
+                                    ${e.folhaResumo.horas ? `<div style="margin-top:6px;"><strong>Horas trabalhadas:</strong> ${e.folhaResumo.horas}h</div>` : ''}
+                                    <div style="margin-top:6px;"><strong>Materiais usados:</strong><br>${e.folhaResumo.materiais ? escapeHtml(e.folhaResumo.materiais).replace(/\n/g, '<br>') : 'Nenhum material registado.'}</div>
+                                ` : (e.obs ? escapeHtml(e.obs) : 'Sem observações registadas nesta intervenção.')}
+                            </div>
+                        </div>
+                    </div>
+                `).join('') : '<div class="vazio">Ainda não há intervenções registadas neste equipamento.</div>'}
+            </div>
+            <div class="sair"><a href="#" onclick="supa.auth.signOut().then(()=>location.reload());return false;">Terminar sessão</a></div>
+        `;
+    } catch (e) {
+        document.getElementById('areaCarregando').style.display = 'none';
+        document.getElementById('areaFicha').style.display = 'block';
+        document.getElementById('areaFicha').innerHTML = `
+            <div class="card">
+                <div class="vazio">Ocorreu um erro a carregar o histórico.</div>
+                <div class="erro-diag">${escapeHtml(String(e && e.message || e))}</div>
+            </div>`;
+        console.error(e);
+    }
+}
+
+iniciar();
+</script>
+</body>
+</html>

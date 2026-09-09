@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Total Gest — Assist</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+    :root {
+        --navy:#0f2044; --navy-deep:#0a1730; --navy-light:#1e3a6e; --navy-mid:#1c3363;
+        --orange:#f4520e; --orange-light:#ff8a3d; --orange-soft:#fef1ea;
+        --bg:#f3f4f9; --surface:#ffffff; --surface-2:#fafbfe; --border:#e6e8f2; --border-soft:#eef0f7;
+        --text:#161c2c; --text-muted:#828ba3; --text-soft:#b6bccd;
+        --green:#178a4c; --green-bg:#e9f8ef; --yellow:#b0650a; --yellow-bg:#fef3e2;
+        --red:#d1342f; --red-bg:#fdecec; --blue:#2456d8; --blue-bg:#eaf0ff;
+        --radius:12px; --radius-lg:16px; --radius-sm:8px;
+        --shadow:0 1px 2px rgba(15,25,55,.05), 0 2px 10px rgba(15,25,55,.04);
+        --shadow-md:0 8px 28px rgba(12,20,45,.10);
+        --shadow-lg:0 20px 55px rgba(8,15,35,.16);
+        --sidebar-w:240px;
+        --font-display:'Space Grotesk','Inter',sans-serif;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:'Inter', 'Segoe UI', Arial, sans-serif; background:var(--bg); color:var(--text); font-size:14px; -webkit-font-smoothing:antialiased; }
+    a { color:inherit; }
+    ::-webkit-scrollbar { height:8px; width:8px; }
+    ::-webkit-scrollbar-thumb { background:#d3d8e6; border-radius:4px; }
+    ::-webkit-scrollbar-thumb:hover { background:#b9c0d6; }
+
+    /* ===== Shell / Sidebar ===== */
+    .crm-shell { display:flex; min-height:100vh; }
+    .crm-sidebar {
+        width:var(--sidebar-w); flex-shrink:0; color:#fff;
+        background:
+            radial-gradient(120% 140% at 0% 0%, rgba(244,82,14,.20) 0%, rgba(244,82,14,0) 45%),
+            linear-gradient(190deg, var(--navy-mid) 0%, var(--navy) 55%, var(--navy-deep) 100%);
+        display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
+        border-right:1px solid rgba(255,255,255,.06);
+    }
+    .crm-sidebar .brand { display:flex; align-items:center; gap:11px; padding:22px 20px 18px; }
+    .crm-sidebar .brand .mark {
+        width:36px; height:36px; border-radius:10px;
+        background:linear-gradient(135deg,var(--orange),var(--orange-light));
+        display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.82rem; flex-shrink:0;
+        font-family:var(--font-display); box-shadow:0 6px 16px rgba(244,82,14,.35);
+    }
+    .crm-sidebar .brand .txt { font-weight:700; font-size:1.02rem; letter-spacing:-.01em; font-family:var(--font-display); }
+    .crm-sidebar .brand .txt small { display:block; font-weight:500; font-size:.66rem; color:#93a1c9; letter-spacing:.03em; margin-top:1px; }
+    .crm-nav { flex:1; padding:6px 12px; overflow-y:auto; }
+    .crm-nav-item {
+        display:flex; align-items:center; gap:11px; padding:9.5px 12px; border-radius:9px; cursor:pointer;
+        color:#aeb9dc; font-size:.85rem; font-weight:500; margin-bottom:2px; transition:background .14s, color .14s, transform .1s;
+        position:relative;
+    }
+    .crm-nav-item i { width:17px; text-align:center; font-size:.9rem; }
+    .crm-nav-item:hover { background:rgba(255,255,255,.07); color:#fff; }
+    .crm-nav-item.ativo { background:linear-gradient(90deg, rgba(244,82,14,.22), rgba(244,82,14,.06)); color:#fff; font-weight:600; }
+    .crm-nav-item.ativo::before { content:''; position:absolute; left:-12px; top:8px; bottom:8px; width:3px; border-radius:3px; background:var(--orange-light); }
+    .crm-nav-item.ativo i { color:var(--orange-light); }
+    .crm-nav-label { padding:18px 12px 7px; font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#5f6d92; }
+    .crm-sidebar-footer { padding:14px 18px 20px; border-top:1px solid rgba(255,255,255,.08); }
+    .crm-sidebar-footer a { display:flex; align-items:center; gap:8px; color:#93a1c9; text-decoration:none; font-size:.8rem; font-weight:500; transition:color .12s; }
+    .crm-sidebar-footer a:hover { color:#fff; }
+
+    /* ===== Main / Topbar ===== */
+    .crm-main { flex:1; min-width:0; display:flex; flex-direction:column; }
+    .crm-topbar {
+        background:rgba(255,255,255,.85); backdrop-filter:saturate(180%) blur(10px);
+        border-bottom:1px solid var(--border); padding:18px 30px;
+        display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+        position:sticky; top:0; z-index:200;
+    }
+    .crm-topbar h1 { margin:0; font-size:1.3rem; font-weight:700; letter-spacing:-.015em; display:flex; align-items:center; gap:12px; font-family:var(--font-display); }
+    .crm-topbar h1 .ic {
+        width:38px; height:38px; border-radius:11px; background:var(--blue-bg); color:var(--blue);
+        display:flex; align-items:center; justify-content:center; font-size:1rem;
+        box-shadow:inset 0 0 0 1px rgba(36,86,216,.12);
+    }
+    .crm-topbar-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .crm-menu-toggle { display:none; background:none; border:1px solid var(--border); border-radius:9px; width:38px; height:38px;
+        align-items:center; justify-content:center; font-size:1.05rem; color:var(--navy); cursor:pointer; flex:0 0 auto; }
+    .crm-sidebar-backdrop { display:none; }
+    .btn-voltar-tg { background:var(--surface-2); color:var(--navy); border:1px solid var(--border); }
+    .btn-voltar-tg:hover { filter:brightness(.97); }
+
+    .crm-body { padding:26px 30px 64px; max-width:1440px; width:100%; margin:0 auto; }
+    .secao-crm { display:none; animation:crmFadeIn .25s ease; }
+    .secao-crm.ativa { display:block; }
+    @keyframes crmFadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+    /* ===== Buttons ===== */
+    .btn { border:none; border-radius:9px; padding:9.5px 16px; font-size:.83rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:filter .12s, box-shadow .12s, transform .08s; font-family:inherit; }
+    .btn:active { transform:translateY(1px); }
+    .btn-primary { background:linear-gradient(135deg, var(--orange), #e0490d); color:#fff; box-shadow:0 4px 14px rgba(244,82,14,.32); }
+    .btn-primary:hover { filter:brightness(1.05); box-shadow:0 6px 18px rgba(244,82,14,.4); }
+    .btn-sm { padding:6.5px 12px; font-size:.78rem; }
+    .btn-outline { background:var(--surface); border:1px solid var(--border); color:var(--text); }
+    .btn-outline:hover { border-color:#c7cede; background:var(--surface-2); }
+    .btn-outline.ativo { background:var(--navy); color:#fff; border-color:var(--navy); }
+    .btn-ghost { background:transparent; color:var(--text-muted); }
+    .btn-ghost:hover { background:var(--border-soft); color:var(--text); }
+
+    /* ===== Forms ===== */
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; font-size:.78rem; font-weight:700; color:#3c4560; margin-bottom:6px; letter-spacing:.01em; }
+    input[type=text], input[type=email], input[type=number], input[type=date], input[type=password], select, textarea {
+        width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:9px; font-size:.87rem; font-family:inherit; background:var(--surface); color:var(--text); transition:border-color .12s, box-shadow .12s;
+    }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:var(--orange); box-shadow:0 0 0 3.5px rgba(244,82,14,.12); }
+    textarea { min-height:64px; resize:vertical; }
+    .help-text { font-size:.74rem; color:var(--text-soft); margin-top:3px; }
+
+    /* ===== Stat cards ===== */
+    .stat-row { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
+    .stat-card {
+        background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:16px 20px;
+        min-width:170px; flex:1 1 170px; box-shadow:var(--shadow); position:relative; overflow:hidden;
+    }
+    .stat-card::after { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--navy-light); opacity:.5; }
+    .stat-card .lbl { font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:6px; }
+    .stat-card .val { font-weight:800; font-size:1.5rem; color:var(--navy); letter-spacing:-.02em; font-family:var(--font-display); }
+    .stat-card.warn::after { background:var(--yellow); } .stat-card.warn .val { color:var(--yellow); } .stat-card.warn .lbl { color:#92500a; }
+    .stat-card.good::after { background:var(--green); } .stat-card.good .val { color:var(--green); } .stat-card.good .lbl { color:#0f6b3a; }
+
+    /* ===== Tables ===== */
+    .table-wrapper { background:var(--surface); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow); border:1px solid var(--border-soft); }
+    .table-wrapper.scroll { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:.85rem; }
+    th { text-align:left; padding:13px 18px; background:var(--surface-2); color:var(--text-muted); font-size:.66rem; text-transform:uppercase; letter-spacing:.06em; font-weight:700; border-bottom:1px solid var(--border-soft); }
+    td { padding:13px 18px; border-top:1px solid var(--border-soft); vertical-align:middle; }
+    tbody tr { transition:background .12s; }
+    tbody tr:hover { background:var(--surface-2); }
+    .badge { display:inline-block; padding:3.5px 11px; border-radius:20px; font-size:.68rem; font-weight:700; letter-spacing:.02em; }
+
+    /* ===== Kanban ===== */
+    .kanban-wrap { display:flex; flex-direction:column; gap:12px; }
+    .kanban-col { background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; padding:14px 16px; display:flex; flex-direction:row; align-items:flex-start; gap:16px; box-shadow:var(--shadow); }
+    .kanban-col-head { display:flex; align-items:center; gap:9px; flex:0 0 172px; padding-top:6px; }
+    .kanban-col-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    .kanban-col-title { font-size:.8rem; font-weight:700; color:#3c4560; letter-spacing:-.01em; }
+    .kanban-col-count { margin-left:auto; font-size:.66rem; font-weight:700; color:#8992a6; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:10px; padding:1px 8px; }
+    .kanban-cards { flex:1; display:flex; flex-direction:row; flex-wrap:wrap; gap:10px; min-height:44px; padding:2px; }
+    .kanban-card {
+        width:214px; flex-shrink:0;
+        background:var(--surface); border:1px solid var(--border-soft); border-radius:11px; padding:12px 13px; cursor:grab;
+        box-shadow:0 1px 3px rgba(20,30,60,.06); transition:box-shadow .14s, transform .14s, border-color .14s; border-left:3px solid var(--border);
+    }
+    .kanban-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); border-color:#dfe3f0; }
+    .kanban-card:active { cursor:grabbing; }
+    .kanban-card .titulo { font-weight:700; font-size:.84rem; color:var(--navy); line-height:1.3; margin-bottom:2px; letter-spacing:-.01em; }
+    .kanban-card .sub { font-size:.72rem; color:var(--text-muted); margin-bottom:7px; }
+    .kanban-card .valor { font-weight:800; font-size:.82rem; color:var(--green); font-family:var(--font-display); }
+    .kanban-card .rodape { display:flex; justify-content:space-between; align-items:center; margin-top:7px; font-size:.7rem; color:var(--text-soft); }
+    .kanban-avatar { width:21px; height:21px; border-radius:50%; background:var(--blue-bg); color:var(--blue); display:inline-flex; align-items:center; justify-content:center; font-size:.62rem; font-weight:700; flex-shrink:0; }
+    .kanban-drop-hover { background:#eef1fb; outline:2px dashed #c2cae4; outline-offset:-4px; }
+
+    /* ===== Modal ===== */
+    .modal-overlay { position:fixed; inset:0; background:rgba(10,16,35,.55); backdrop-filter:blur(2px); display:none; align-items:center; justify-content:center; padding:16px; z-index:9000; }
+    .modal-overlay.open { display:flex; animation:crmFadeIn .18s ease; }
+    .modal { background:var(--surface); border-radius:var(--radius-lg); padding:26px; max-width:520px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); }
+    .modal h3 { margin:0; color:var(--navy); font-size:1.08rem; font-weight:700; font-family:var(--font-display); }
+    .close-modal { background:var(--border-soft); border:none; width:29px; height:29px; border-radius:50%; font-size:1.1rem; cursor:pointer; color:var(--text-muted); line-height:1; transition:background .12s, color .12s; }
+    .close-modal:hover { background:var(--border); color:var(--text); }
+    .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:17px; border-top:1px solid var(--border-soft); }
+
+    .status-toast { position:fixed; bottom:20px; left:20px; background:linear-gradient(135deg,#7c2d12,#5c1f0c); color:#fff; padding:13px 17px; border-radius:11px; font-size:.85rem; max-width:320px; z-index:9500; display:none; box-shadow:0 10px 28px rgba(0,0,0,.28); }
+    .status-toast a { color:#fed7aa; text-decoration:underline; cursor:pointer; }
+
+    .text-muted { color:var(--text-muted); }
+    .text-center { text-align:center; }
+    .mt-10 { margin-top:10px; }
+    #loginNecessario { display:none; padding:110px 20px; text-align:center; color:var(--text-muted); }
+    #loginNecessario i { background:var(--surface); width:64px; height:64px; border-radius:16px; display:inline-flex; align-items:center; justify-content:center; box-shadow:var(--shadow); }
+
+    /* ===== Editor de Orçamento ===== */
+    .orc-topo { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+    .orc-card { background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); box-shadow:var(--shadow); padding:18px 20px; }
+    .orc-dados { flex:1 1 380px; }
+    .orc-resumo { flex:1 1 300px; }
+    .orc-resumo .linha-meta { display:flex; justify-content:space-between; font-size:.76rem; color:var(--text-muted); padding:2px 0; }
+    .orc-resumo .linha-meta strong { color:var(--text); font-weight:600; }
+    .orc-resumo hr { border:none; border-top:1px solid var(--border-soft); margin:10px 0; }
+    .orc-resumo .linha-valor { display:flex; justify-content:space-between; font-size:.82rem; padding:3px 0; color:var(--text); }
+    .orc-resumo .linha-valor.total { font-weight:800; font-size:1.05rem; color:var(--navy); font-family:var(--font-display); padding-top:6px; }
+    .orc-resumo .linha-valor.total-iva { font-weight:800; font-size:1.15rem; color:var(--green); font-family:var(--font-display); }
+    .orc-resumo .linha-valor.total-iva small { display:block; font-weight:500; font-size:.62rem; color:var(--text-soft); text-transform:uppercase; letter-spacing:.04em; }
+
+    .orc-secao-titulo { font-size:.95rem; font-weight:800; color:var(--navy); font-family:var(--font-display); margin:22px 0 10px; letter-spacing:-.01em; }
+    .orc-pesquisa-artigo { position:relative; margin-bottom:14px; max-width:420px; }
+    .orc-pesquisa-artigo input { padding-left:36px; }
+    .orc-pesquisa-artigo i { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--text-soft); }
+    .orc-lista-sugestoes { position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow-md); max-height:260px; overflow-y:auto; z-index:50; display:none; }
+    .orc-lista-sugestoes.aberta { display:block; }
+    .orc-sugestao-item { padding:9px 14px; cursor:pointer; font-size:.83rem; display:flex; justify-content:space-between; gap:10px; }
+    .orc-sugestao-item:hover { background:var(--surface-2); }
+    .orc-sugestao-item .ref { color:var(--text-muted); font-size:.72rem; }
+    .orc-sugestao-vazia { padding:12px 14px; font-size:.8rem; color:var(--text-muted); }
+
+    .orc-linha-produto { display:grid; grid-template-columns:44px 1.5fr 1fr .6fr .75fr .65fr .5fr .9fr 32px; gap:10px; align-items:center; padding:12px 8px; border-bottom:1px solid var(--border-soft); }
+    .orc-linha-produto:last-child { border-bottom:none; }
+    .orc-linha-produto .orc-icone { width:40px; height:40px; border-radius:9px; background:var(--blue-bg); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:1rem; }
+    .orc-linha-produto .nome { font-weight:700; font-size:.85rem; color:var(--navy); }
+    .orc-linha-produto .ref { font-size:.7rem; color:var(--text-muted); }
+    .orc-linha-produto input { padding:7px 9px; font-size:.82rem; }
+    .orc-linha-produto .preco-x-qtd { font-size:.72rem; color:var(--text-muted); text-align:center; }
+    .orc-badge-margem { display:inline-block; padding:2px 8px; border-radius:20px; font-size:.68rem; font-weight:800; color:#fff; margin-left:4px; }
+    .orc-linha-produto .total-linha { font-weight:800; font-size:.9rem; color:var(--green); font-family:var(--font-display); text-align:right; }
+    .orc-linha-produto .remover-linha { background:var(--red-bg); color:var(--red); border:none; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:.85rem; }
+    .orc-linha-produto .remover-linha:hover { filter:brightness(.95); }
+    .orc-produtos-cabecalho { display:grid; grid-template-columns:44px 1.5fr 1fr .6fr .75fr .65fr .5fr .9fr 32px; gap:10px; padding:0 8px 8px; font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); }
+    .orc-total-produtos { display:flex; justify-content:flex-end; gap:26px; padding:14px 8px 4px; font-size:.85rem; }
+    .orc-total-produtos b { color:var(--navy); font-family:var(--font-display); }
+
+    .orc-outros-linha { display:grid; grid-template-columns:1.4fr 1.6fr .7fr .55fr .8fr 32px; gap:12px; align-items:center; padding:10px 8px; border-bottom:1px solid var(--border-soft); }
+    .orc-outros-cabecalho { display:grid; grid-template-columns:1.4fr 1.6fr .7fr .55fr .8fr 32px; gap:12px; padding:0 8px 8px; font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); }
+
+    .orc-rodape-acoes { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+    @media (max-width:820px) {
+        .orc-linha-produto, .orc-produtos-cabecalho { grid-template-columns:1fr; }
+        .orc-outros-linha, .orc-outros-cabecalho { grid-template-columns:1fr; }
+    }
+
+    @media (max-width:880px) {
+        .crm-sidebar { position:fixed; z-index:500; transform:translateX(-100%); transition:transform .2s; }
+        .crm-sidebar.aberta { transform:translateX(0); }
+        .crm-body { padding:16px; }
+        .crm-topbar { padding:14px 16px; }
+        .crm-menu-toggle { display:flex; }
+        .crm-sidebar-backdrop.aberta { display:block; position:fixed; inset:0; background:rgba(15,23,42,.45); z-index:499; }
+        .btn-voltar-tg span { display:none; }
+        .btn-voltar-tg { padding:9px 11px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="crm-shell">
+    <aside class="crm-sidebar">
+        <div class="brand">
+            <div class="mark">TG</div>
+            <div class="txt">Total Gest Assist<small>TOTAL GEST · ASSISTÊNCIA</small></div>
+        </div>
+        <div class="crm-nav">
+            <div class="crm-nav-label">Início</div>
+            <div class="crm-nav-item ativo" data-tab="dashboard" onclick="mudarTabCRM('dashboard')"><i class="fas fa-chart-line"></i><span>Dashboard</span></div>
+            <div class="crm-nav-label">Suporte</div>
+            <div class="crm-nav-item" data-tab="assistencias" onclick="mudarTabCRM('assistencias')"><i class="fas fa-headset"></i><span>Assistências</span></div>
+        </div>
+        <div class="crm-sidebar-footer">
+            <a href="index.html"><i class="fas fa-arrow-left"></i> Aplicação principal</a>
+        </div>
+    </aside>
+    <div class="crm-sidebar-backdrop" onclick="_crmFecharMenu()"></div>
+
+    <div class="crm-main">
+        <div id="loginNecessario">
+            <i class="fas fa-lock" style="font-size:2rem;margin-bottom:12px;color:var(--text-soft);"></i>
+            <p>Precisas de estar autenticado na aplicação principal para usar o Assist.</p>
+            <p><a href="index.html" style="color:var(--orange);font-weight:700;text-decoration:none;">Entrar na aplicação principal →</a></p>
+        </div>
+
+        <div id="crmApp" style="display:none;">
+            <div class="crm-topbar">
+                <h1><button type="button" class="crm-menu-toggle" onclick="_crmAbrirMenu()" title="Menu"><i class="fas fa-bars"></i></button><span class="ic" id="crmTopIcon"><i class="fas fa-chart-line"></i></span><span id="crmTopTitulo">Dashboard</span></h1>
+                <div class="crm-topbar-actions" id="crmTopAcoes"><a href="index.html" class="btn btn-sm btn-voltar-tg"><i class="fas fa-arrow-left"></i> <span>Voltar ao Total Gest</span></a></div>
+            </div>
+
+            <div class="crm-body">
+
+                <div id="secao-dashboard" class="secao-crm ativa">
+                    <div class="stat-row">
+                        <div class="stat-card"><div class="lbl">Assistências abertas</div><div class="val" id="assistDashAbertas">0</div></div>
+                        <div class="stat-card warn"><div class="lbl">Em atendimento</div><div class="val" id="assistDashAndamento">0</div></div>
+                        <div class="stat-card good"><div class="lbl">Resolvidas (30 dias)</div><div class="val" id="assistDashResolvidas">0</div></div>
+                        <div class="stat-card"><div class="lbl">OS geradas (30 dias)</div><div class="val" id="assistDashOsGeradas">0</div></div>
+                        <div class="stat-card"><div class="lbl">Tempo médio de resolução</div><div class="val" id="assistDashTempoMedio">—</div></div>
+                        <div class="stat-card" id="assistDashForaSlaCard" style="border-left:3px solid #d1342f;"><div class="lbl">Fora do SLA (+48h)</div><div class="val" id="assistDashForaSla">0</div></div>
+                    </div>
+                    <div id="assistDashAlertaSla" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:8px;background:var(--red-bg);color:var(--red);font-weight:600;font-size:.85rem;cursor:pointer;" onclick="mudarTabCRM('assistencias')"></div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+                        <div class="table-wrapper" style="flex:1;min-width:260px;padding:16px 18px;">
+                            <h4 style="margin-bottom:10px;color:var(--navy);">Por prioridade (em aberto)</h4>
+                            <div id="assistDashPrioridades"></div>
+                        </div>
+                    </div>
+                    <div class="orc-secao-titulo" style="margin-top:6px;">Assistências mais recentes</div>
+                    <div class="table-wrapper scroll">
+                        <table>
+                            <thead><tr><th>Nº</th><th>Cliente</th><th>Assunto</th><th>Prioridade</th><th>Estado</th><th>Data</th></tr></thead>
+                            <tbody id="tabelaDashAssist"></tbody>
+                        </table>
+                    </div>
+                    <p id="emptyDashAssist" class="text-muted text-center mt-10" style="display:none;">Ainda não há assistências registadas.</p>
+                </div>
+
+                <div id="secao-assistencias" class="secao-crm">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                        <select id="assistFiltroEstado" onchange="renderizarAssistencias()" style="max-width:200px;">
+                            <option value="">Todos os estados</option>
+                            <option value="aberta">Aberta</option>
+                            <option value="andamento">Em atendimento</option>
+                            <option value="resolvida">Resolvida</option>
+                            <option value="fechada">Fechada</option>
+                        </select>
+                        <select id="assistFiltroPrioridade" onchange="renderizarAssistencias()" style="max-width:180px;">
+                            <option value="">Todas as prioridades</option>
+                            <option value="baixa">Baixa</option>
+                            <option value="normal">Normal</option>
+                            <option value="alta">Alta</option>
+                            <option value="urgente">Urgente</option>
+                        </select>
+                    </div>
+                    <div class="table-wrapper scroll">
+                        <table>
+                            <thead><tr><th>Nº</th><th>Cliente</th><th>Assunto</th><th>Prioridade</th><th>Estado</th><th>Atribuído</th><th>Data</th><th>Ações</th></tr></thead>
+                            <tbody id="tabelaAssistencias"></tbody>
+                        </table>
+                    </div>
+                    <p id="emptyAssistencias" class="text-muted text-center mt-10" style="display:none;">Nenhuma assistência ainda — clica em "Nova Assistência" para começar.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<datalist id="dlClientes"></datalist>
+
+<div class="modal-overlay" id="modalGenericoOverlay">
+    <div class="modal">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <h3 id="modalGenericoTitulo"></h3>
+            <button class="close-modal" onclick="document.getElementById('modalGenericoOverlay').classList.remove('open')">&times;</button>
+        </div>
+        <form id="modalGenericoForm">
+            <div id="modalGenericoCampos"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-ghost" onclick="document.getElementById('modalGenericoOverlay').classList.remove('open')">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="statusToast" class="status-toast"></div>
+
+<script>
+        // ===================== Núcleo (ligação Supabase + sessão partilhada) =====================
+        const SUPABASE_URL      = 'https://rfniufasivfnrqfntzog.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmbml1ZmFzaXZmbnJxZm50em9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzI2MjcsImV4cCI6MjA5NzQ0ODYyN30.1hJ7JBpCKo-Wp93HM5skXVnYk3ghyC7mo0rubbvCXyI';
+        const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let dados = { administradores: [], funcionarios: [], encarregados: [], clientes: [], servicos: [], notificacoes: [], artigos: [], assistencias: [] };
+        let usuarioLogado = null;
+        const ORDEM_CRM = ['administradores', 'funcionarios', 'encarregados', 'clientes', 'servicos', 'notificacoes', 'artigos', 'assistencias'];
+
+        const msToISO = (ms) => (ms == null || ms === '') ? null : new Date(Number(ms)).toISOString();
+        const isoToMs = (iso) => (iso == null || iso === '') ? null : Date.parse(iso);
+        const nn = (v) => (v === '' || v === undefined) ? null : v;
+        const hhmm = (t) => t ? String(t).slice(0, 5) : (t === '' ? '' : null);
+
+        const M = {
+
+            administradores: {
+                tabela: 'administradores',
+                from: r => ({ id: r.id, nome: r.nome, email: r.email, empresa: r.empresa || '', logo: r.logo || null, licencaFeedback: r.licenca_feedback || null, contratosPlano: r.contratos_plano || null, contratosExpiracao: isoToMs(r.contratos_expiracao), frotaPlano: r.frota_plano || null, frotaExpiracao: isoToMs(r.frota_expiracao), armazemPlano: r.armazem_plano || null, armazemExpiracao: isoToMs(r.armazem_expiracao), portalPlano: r.portal_plano || null, portalExpiracao: isoToMs(r.portal_expiracao), crmPlano: r.crm_plano || null, crmExpiracao: isoToMs(r.crm_expiracao), assistPlano: r.assist_plano || null, assistExpiracao: isoToMs(r.assist_expiracao), dadosBancarios: r.dados_bancarios || null, ativo: r.ativo, mudarSenha: r.mudar_senha === true, ultimoLogin: isoToMs(r.ultimo_login), ultimaAtividade: isoToMs(r.ultima_atividade), mostrarEstadoOnline: r.mostrar_estado_online === true, layout: r.layout || null, tiposEquipamento: r.tipos_equipamento || [], logo: r.logo, notificarAprovacao: r.notificar_aprovacao === true, numeroRegistoPrevio: r.numero_registo_previo || null, numeroAnepc: r.numero_anepc || null, corCorporativa: r.cor_corporativa || null, favoritos: Array.isArray(r.favoritos) ? r.favoritos : [], ivaPeriodicidade: r.iva_periodicidade || 'mensal', irsPeriodicidade: r.irs_periodicidade || 'semestral', painelTvAtivo: r.painel_tv_ativo === true, descricoesRapidasOS: Array.isArray(r.descricoes_rapidas_os) ? r.descricoes_rapidas_os : ['Instalação', 'Manutenção', 'Visita', 'Formação'], dataCriacao: isoToMs(r.data_criacao) }),
+                to:   o => ({ id: o.id, nome: o.nome, email: o.email, senha: o.senha, empresa: o.empresa || null, logo: o.logo || null, licenca_feedback: o.licencaFeedback || null, contratos_plano: o.contratosPlano || null, contratos_expiracao: msToISO(o.contratosExpiracao), frota_plano: o.frotaPlano || null, frota_expiracao: msToISO(o.frotaExpiracao), armazem_plano: o.armazemPlano || null, armazem_expiracao: msToISO(o.armazemExpiracao), portal_plano: o.portalPlano || null, portal_expiracao: msToISO(o.portalExpiracao), crm_plano: o.crmPlano || null, crm_expiracao: msToISO(o.crmExpiracao), assist_plano: o.assistPlano || null, assist_expiracao: msToISO(o.assistExpiracao), dados_bancarios: o.dadosBancarios || null, ativo: o.ativo !== false, mudar_senha: o.mudarSenha === true, ultimo_login: o.ultimoLogin ? msToISO(o.ultimoLogin) : null, ultima_atividade: o.ultimaAtividade ? msToISO(o.ultimaAtividade) : null, mostrar_estado_online: o.mostrarEstadoOnline === true, layout: o.layout || null, tipos_equipamento: o.tiposEquipamento || [], logo: o.logo || null, notificar_aprovacao: o.notificarAprovacao === true, numero_registo_previo: o.numeroRegistoPrevio || null, numero_anepc: o.numeroAnepc || null, cor_corporativa: o.corCorporativa || null, favoritos: o.favoritos || [], iva_periodicidade: o.ivaPeriodicidade || 'mensal', irs_periodicidade: o.irsPeriodicidade || 'semestral', painel_tv_ativo: o.painelTvAtivo === true, descricoes_rapidas_os: o.descricoesRapidasOS || null, data_criacao: msToISO(o.dataCriacao) })
+            },
+
+            funcionarios: {
+                tabela: 'funcionarios',
+                from: r => ({ id: r.id, nome: r.nome, foto: r.foto || null, cargo: r.cargo, telefone: r.telefone, email: r.email, horasSemanais: r.horas_semanais, role: r.role, adminId: r.admin_id, morada: r.morada, codigoPostal: r.codigo_postal, dataNascimento: r.data_nascimento, ordenadoBruto: r.ordenado_bruto, veiculoId: r.veiculo_id, mudarSenha: r.mudar_senha === true, gpsPonto: r.gps_ponto !== false, ultimaAtividade: isoToMs(r.ultima_atividade), ultimoLogin: isoToMs(r.ultimo_login), diasFerias: r.dias_ferias != null ? r.dias_ferias : 22, pin: r.pin || null, permissoesNegadas: Array.isArray(r.permissoes_negadas) ? r.permissoes_negadas : [], apoliceNumero: r.apolice_numero || null, apoliceSeguradora: r.apolice_seguradora || null, apoliceValidade: r.apolice_validade || null, saudeApoliceNumero: r.saude_apolice_numero || null, saudeApoliceSeguradora: r.saude_apolice_seguradora || null, saudeApoliceValidade: r.saude_apolice_validade || null, favoritos: Array.isArray(r.favoritos) ? r.favoritos : [], suspenso: r.suspenso === true }),
+                to:   o => ({ id: o.id, nome: o.nome, foto: o.foto || null, cargo: o.cargo || null, telefone: o.telefone || null, email: o.email, senha: o.senha, horas_semanais: o.horasSemanais || 40, role: o.role || 'funcionario', admin_id: o.adminId || null, morada: o.morada || null, codigo_postal: o.codigoPostal || null, data_nascimento: nn(o.dataNascimento), ordenado_bruto: (o.ordenadoBruto === '' || o.ordenadoBruto == null) ? null : Number(o.ordenadoBruto), veiculo_id: o.veiculoId || null, mudar_senha: o.mudarSenha === true, gps_ponto: o.gpsPonto !== false, ultima_atividade: o.ultimaAtividade ? msToISO(o.ultimaAtividade) : null, ultimo_login: o.ultimoLogin ? msToISO(o.ultimoLogin) : null, dias_ferias: o.diasFerias != null ? o.diasFerias : 22, pin: o.pin || null, permissoes_negadas: o.permissoesNegadas || [], apolice_numero: o.apoliceNumero || null, apolice_seguradora: o.apoliceSeguradora || null, apolice_validade: o.apoliceValidade || null, saude_apolice_numero: o.saudeApoliceNumero || null, saude_apolice_seguradora: o.saudeApoliceSeguradora || null, saude_apolice_validade: o.saudeApoliceValidade || null, favoritos: o.favoritos || [], suspenso: o.suspenso === true })
+            },
+
+            encarregados: {
+                tabela: 'encarregados',
+                from: r => ({ id: r.id, nome: r.nome, email: r.email, adminId: r.admin_id, funcionariosIds: [], dataCriacao: isoToMs(r.data_criacao), cargo: r.cargo, telefone: r.telefone, morada: r.morada, codigoPostal: r.codigo_postal, dataNascimento: r.data_nascimento, horasSemanais: r.horas_semanais, ordenadoBruto: r.ordenado_bruto, veiculoId: r.veiculo_id, mudarSenha: r.mudar_senha === true, gpsPonto: r.gps_ponto !== false, ultimaAtividade: isoToMs(r.ultima_atividade), ultimoLogin: isoToMs(r.ultimo_login), diasFerias: r.dias_ferias != null ? r.dias_ferias : 22, pin: r.pin || null, favoritos: Array.isArray(r.favoritos) ? r.favoritos : [], suspenso: r.suspenso === true }),
+                to:   o => ({ id: o.id, nome: o.nome, email: o.email, senha: o.senha, admin_id: o.adminId, data_criacao: msToISO(o.dataCriacao), cargo: o.cargo || null, telefone: o.telefone || null, morada: o.morada || null, codigo_postal: o.codigoPostal || null, data_nascimento: nn(o.dataNascimento), horas_semanais: o.horasSemanais || 40, ordenado_bruto: (o.ordenadoBruto === '' || o.ordenadoBruto == null) ? null : Number(o.ordenadoBruto), veiculo_id: o.veiculoId || null, mudar_senha: o.mudarSenha === true, ultima_atividade: o.ultimaAtividade ? msToISO(o.ultimaAtividade) : null, ultimo_login: o.ultimoLogin ? msToISO(o.ultimoLogin) : null, dias_ferias: o.diasFerias != null ? o.diasFerias : 22, pin: o.pin || null, favoritos: o.favoritos || [], suspenso: o.suspenso === true })
+            },
+
+            clientes: {
+                tabela: 'clientes',
+                from: r => ({ id: r.id, nome: r.nome, numeroCliente: r.numero_cliente || null, telefone: r.telefone, endereco: r.endereco, morada: r.morada, numeroPorta: r.numero_porta || null, codigoPostal: r.codigo_postal, cidade: r.cidade, freguesia: r.freguesia, nif: r.nif, pessoaContacto: r.pessoa_contacto, email: r.email, portalAtivo: r.portal_ativo === true, adminId: r.admin_id }),
+                to:   o => ({ id: o.id, nome: o.nome, numero_cliente: o.numeroCliente || null, telefone: o.telefone || null, endereco: o.endereco || null, morada: o.morada || null, numero_porta: o.numeroPorta || null, codigo_postal: o.codigoPostal || null, cidade: o.cidade || null, freguesia: o.freguesia || null, nif: o.nif || null, pessoa_contacto: o.pessoaContacto || null, email: o.email || null, senha: o.senha || null, portal_ativo: o.portalAtivo === true, admin_id: o.adminId })
+            },
+
+            leads: {
+                tabela: 'leads',
+                from: r => ({ id: r.id, adminId: r.admin_id, empresa: r.empresa, nif: r.nif || null, nomeContacto: r.nome_contacto || null, telefone: r.telefone || null, telemovel: r.telemovel || null, email: r.email || null, website: r.website || null, setor: r.setor || null, numColaboradores: r.num_colaboradores || null, distrito: r.distrito || null, concelho: r.concelho || null, origem: r.origem || null, responsavelComercial: r.responsavel_comercial || null, observacoes: r.observacoes || null, temperatura: r.temperatura || 'morno', prioridade: r.prioridade || 'media', estado: r.estado || 'novo', motivoPerda: r.motivo_perda || null, clienteConvertidoId: r.cliente_convertido_id || null, dataCriacao: isoToMs(r.data_criacao), dataUltimoContacto: isoToMs(r.data_ultimo_contacto) }),
+                to:   o => ({ id: o.id, admin_id: o.adminId, empresa: o.empresa, nif: o.nif || null, nome_contacto: o.nomeContacto || null, telefone: o.telefone || null, telemovel: o.telemovel || null, email: o.email || null, website: o.website || null, setor: o.setor || null, num_colaboradores: o.numColaboradores || null, distrito: o.distrito || null, concelho: o.concelho || null, origem: o.origem || null, responsavel_comercial: o.responsavelComercial || null, observacoes: o.observacoes || null, temperatura: o.temperatura || 'morno', prioridade: o.prioridade || 'media', estado: o.estado || 'novo', motivo_perda: o.motivoPerda || null, cliente_convertido_id: o.clienteConvertidoId || null, data_criacao: msToISO(o.dataCriacao), data_ultimo_contacto: o.dataUltimoContacto ? msToISO(o.dataUltimoContacto) : null })
+            },
+
+            oportunidades: {
+                tabela: 'oportunidades',
+                from: r => ({ id: r.id, adminId: r.admin_id, nome: r.nome, clienteId: r.cliente_id || null, leadId: r.lead_id || null, contacto: r.contacto || null, valor: r.valor != null ? Number(r.valor) : 0, estado: r.estado || 'novo', responsavel: r.responsavel || null, concorrente: r.concorrente || null, origem: r.origem || null, descricao: r.descricao || null, produtosServicos: r.produtos_servicos || null, margemPrevista: r.margem_prevista != null ? Number(r.margem_prevista) : null, comissaoPercentagem: r.comissao_percentagem != null ? Number(r.comissao_percentagem) : null, comissaoPaga: r.comissao_paga === true, dataPrevistaFecho: r.data_prevista_fecho || null, dataFecho: isoToMs(r.data_fecho), motivoPerda: r.motivo_perda || null, dataCriacao: isoToMs(r.data_criacao) }),
+                to:   o => ({ id: o.id, admin_id: o.adminId, nome: o.nome, cliente_id: o.clienteId || null, lead_id: o.leadId || null, contacto: o.contacto || null, valor: o.valor || 0, estado: o.estado || 'novo', responsavel: o.responsavel || null, concorrente: o.concorrente || null, origem: o.origem || null, descricao: o.descricao || null, produtos_servicos: o.produtosServicos || null, margem_prevista: o.margemPrevista ?? null, comissao_percentagem: o.comissaoPercentagem ?? null, comissao_paga: o.comissaoPaga === true, data_prevista_fecho: o.dataPrevistaFecho || null, data_fecho: o.dataFecho ? msToISO(o.dataFecho) : null, motivo_perda: o.motivoPerda || null, data_criacao: msToISO(o.dataCriacao) })
+            },
+
+            propostas: {
+                tabela: 'propostas',
+                from: r => ({ id: r.id, adminId: r.admin_id, numero: r.numero, oportunidadeId: r.oportunidade_id || null, clienteId: r.cliente_id || null, contacto: r.contacto || null, nome: r.nome || null, descricao: r.descricao || null, valor: r.valor != null ? Number(r.valor) : 0, margem: r.margem != null ? Number(r.margem) : null, margemPadrao: r.margem_padrao != null ? Number(r.margem_padrao) : 30, ivaPercent: r.iva_percent != null ? Number(r.iva_percent) : 23, desconto: r.desconto != null ? Number(r.desconto) : null, produtosServicos: r.produtos_servicos || null, itens: Array.isArray(r.itens) ? r.itens : (r.itens ? JSON.parse(r.itens) : []), outrosItens: Array.isArray(r.outros_itens) ? r.outros_itens : (r.outros_itens ? JSON.parse(r.outros_itens) : []), observacoes: r.observacoes || null, estado: r.estado || 'rascunho', responsavelComercial: r.responsavel_comercial || null, comissaoPercentagem: r.comissao_percentagem != null ? Number(r.comissao_percentagem) : null, comissaoPaga: r.comissao_paga === true, osGeradaId: r.os_gerada_id || null, dataCriacao: isoToMs(r.data_criacao), dataModificacao: isoToMs(r.data_modificacao) || isoToMs(r.data_criacao), dataEnvio: r.data_envio || null }),
+                to:   o => ({ id: o.id, admin_id: o.adminId, numero: o.numero, oportunidade_id: o.oportunidadeId || null, cliente_id: o.clienteId || null, contacto: o.contacto || null, nome: o.nome || null, descricao: o.descricao || null, valor: o.valor || 0, margem: o.margem ?? null, margem_padrao: o.margemPadrao ?? 30, iva_percent: o.ivaPercent ?? 23, desconto: o.desconto ?? null, produtos_servicos: o.produtosServicos || null, itens: o.itens || [], outros_itens: o.outrosItens || [], observacoes: o.observacoes || null, estado: o.estado || 'rascunho', responsavel_comercial: o.responsavelComercial || null, comissao_percentagem: o.comissaoPercentagem ?? null, comissao_paga: o.comissaoPaga === true, os_gerada_id: o.osGeradaId || null, data_criacao: msToISO(o.dataCriacao), data_modificacao: msToISO(o.dataModificacao || Date.now()), data_envio: o.dataEnvio || null })
+            },
+
+            atividadesComerciais: {
+                tabela: 'atividades_comerciais',
+                from: r => ({ id: r.id, adminId: r.admin_id, leadId: r.lead_id || null, oportunidadeId: r.oportunidade_id || null, tipo: r.tipo, resultado: r.resultado || null, proximaAcao: r.proxima_acao || null, responsavel: r.responsavel || null, dataCriacao: isoToMs(r.data_criacao) }),
+                to:   o => ({ id: o.id, admin_id: o.adminId, lead_id: o.leadId || null, oportunidade_id: o.oportunidadeId || null, tipo: o.tipo, resultado: o.resultado || null, proxima_acao: o.proximaAcao || null, responsavel: o.responsavel || null, data_criacao: msToISO(o.dataCriacao) })
+            },
+
+            contratos: {
+                tabela: 'contratos',
+                from: r => ({ id: r.id, numero: r.numero, adminId: r.admin_id, clienteId: r.cliente_id, localId: r.local_id, equipamentoId: r.equipamento_id, equipamentosIds: Array.isArray(r.equipamentos_ids) ? r.equipamentos_ids : [], tipo: r.tipo, tiposTrabalho: Array.isArray(r.tipos_trabalho) ? r.tipos_trabalho : [], periodicidade: r.periodicidade, tipoIntervencao: r.tipo_intervencao, tecnicoId: r.tecnico_id, dataInicio: r.data_inicio, valor: r.valor, marca: r.marca, numeroSerie: r.numero_serie, proximaManutencao: r.proxima_manutencao, ultimaOSGeradaData: r.ultima_os_gerada_data || null, ultimaOSGeradaId: r.ultima_os_gerada_id || null, dataCriacao: isoToMs(r.data_criacao) }),
+                to:   o => ({ id: o.id, numero: o.numero, admin_id: o.adminId, cliente_id: o.clienteId, local_id: o.localId || null, equipamento_id: o.equipamentoId || null, equipamentos_ids: o.equipamentosIds || [], tipo: o.tipo, tipos_trabalho: o.tiposTrabalho || [], periodicidade: o.periodicidade || null, tipo_intervencao: o.tipoIntervencao || null, tecnico_id: o.tecnicoId || null, data_inicio: nn(o.dataInicio), valor: (o.valor === '' || o.valor == null) ? null : Number(o.valor), marca: o.marca || null, numero_serie: o.numeroSerie || null, proxima_manutencao: nn(o.proximaManutencao), ultima_os_gerada_data: o.ultimaOSGeradaData || null, ultima_os_gerada_id: o.ultimaOSGeradaId || null, data_criacao: msToISO(o.dataCriacao) })
+            },
+
+            equipamentos: {
+                tabela: 'equipamentos',
+                from: r => ({ id: r.id, adminId: r.admin_id, localId: r.local_id, tipo: r.tipo, marca: r.marca, numeroSerie: r.numero_serie, observacoes: r.observacoes, dataCriacao: isoToMs(r.data_criacao) }),
+                to:   o => ({ id: o.id, admin_id: o.adminId, local_id: o.localId || null, tipo: o.tipo, marca: o.marca || null, numero_serie: o.numeroSerie || null, observacoes: o.observacoes || null, data_criacao: msToISO(o.dataCriacao) })
+            },
+
+            servicos: {
+                tabela: 'servicos',
+                from: r => ({ id: r.id, numeroRegisto: r.numero_registo, clienteId: r.cliente_id, funcionarioId: r.funcionario_id, funcionariosIds: Array.isArray(r.funcionarios_ids) ? r.funcionarios_ids : [], contratoId: r.contrato_id, obraId: r.obra_id, localId: r.local_id || null, assistenciaId: r.assistencia_id || null, valor: r.valor != null ? Number(r.valor) : null, duracao: r.duracao != null ? Number(r.duracao) : null, duracaoDias: r.duracao_dias != null ? Number(r.duracao_dias) : null, morada: r.morada || null, numeroPorta: r.numero_porta || null, codigoPostal: r.codigo_postal || null, cidade: r.cidade || null, freguesia: r.freguesia || null, data: r.data || '', hora: hhmm(r.hora) || '', descricao: r.descricao, status: r.status, origem: r.origem || null, tiposTrabalho: Array.isArray(r.tipos_trabalho) ? r.tipos_trabalho : [], adminId: r.admin_id }),
+                to:   o => ({ id: o.id, numero_registo: o.numeroRegisto || null, cliente_id: o.clienteId || null, funcionario_id: o.funcionarioId || null, funcionarios_ids: o.funcionariosIds || [], contrato_id: o.contratoId || null, obra_id: o.obraId || null, local_id: o.localId || null, assistencia_id: o.assistenciaId || null, valor: (o.valor === '' || o.valor == null) ? null : Number(o.valor), duracao: (o.duracao === '' || o.duracao == null) ? null : parseInt(o.duracao,10), duracao_dias: (o.duracaoDias === '' || o.duracaoDias == null) ? null : parseInt(o.duracaoDias,10), morada: o.morada || null, numero_porta: o.numeroPorta || null, codigo_postal: o.codigoPostal || null, cidade: o.cidade || null, freguesia: o.freguesia || null, data: nn(o.data), hora: nn(o.hora), descricao: o.descricao || null, status: o.status || 'pendente', origem: o.origem || null, tipos_trabalho: o.tiposTrabalho || [], admin_id: o.adminId })
+            },
+
+            notificacoes: {
+                tabela: 'notificacoes',
+                from: r => ({ id: r.id, adminId: r.admin_id, destinatarioId: r.destinatario_id, titulo: r.titulo, mensagem: r.mensagem, lida: r.lida, dataCriacao: isoToMs(r.data_criacao) }),
+                to:   o => ({ id: o.id, admin_id: o.adminId || null, destinatario_id: o.destinatarioId || null, titulo: o.titulo || null, mensagem: o.mensagem || null, lida: o.lida || false, data_criacao: msToISO(o.dataCriacao) })
+            },
+
+            artigos: {
+                tabela: 'artigos',
+                from: r => ({ id: r.id, adminId: r.admin_id, nome: r.nome, marca: r.marca, categoria: r.categoria, referencia: r.referencia, unidade: r.unidade, stockInicial: Number(r.stock_inicial) || 0, stockMinimo: r.stock_minimo != null ? Number(r.stock_minimo) : null, precoVenda: r.preco_venda != null ? Number(r.preco_venda) : (r.preco_medio != null ? Number(r.preco_medio) : null), precoCompra: r.preco_compra != null ? Number(r.preco_compra) : null, alertaStock: r.alerta_stock === true, observacoes: r.observacoes, dataCriacao: isoToMs(r.data_criacao) }),
+                to:   o => ({ id: o.id, admin_id: o.adminId, nome: o.nome, marca: o.marca || null, categoria: o.categoria || null, referencia: o.referencia || null, unidade: o.unidade || 'un', stock_inicial: (o.stockInicial === '' || o.stockInicial == null) ? 0 : Number(o.stockInicial), stock_minimo: (o.stockMinimo === '' || o.stockMinimo == null) ? null : Number(o.stockMinimo), preco_venda: (o.precoVenda === '' || o.precoVenda == null) ? null : Number(o.precoVenda), preco_compra: (o.precoCompra === '' || o.precoCompra == null) ? null : Number(o.precoCompra), alerta_stock: o.alertaStock === true, observacoes: o.observacoes || null, data_criacao: msToISO(o.dataCriacao) })
+            },
+            assistencias: {
+                tabela: 'assistencias',
+                from: r => ({ id: r.id, adminId: r.admin_id, numero: r.numero, clienteId: r.cliente_id, assunto: r.assunto, descricao: r.descricao, prioridade: r.prioridade || 'normal', estado: r.estado || 'aberta', atribuidoId: r.atribuido_id || null, criadoPor: r.criado_por || null, osGeradaId: r.os_gerada_id || null, notas: Array.isArray(r.notas) ? r.notas : (r.notas ? JSON.parse(r.notas) : []), dataCriacao: isoToMs(r.data_criacao), dataModificacao: isoToMs(r.data_modificacao) }),
+                to:   o => ({ id: o.id, admin_id: o.adminId, numero: o.numero || null, cliente_id: o.clienteId || null, assunto: o.assunto || null, descricao: o.descricao || null, prioridade: o.prioridade || 'normal', estado: o.estado || 'aberta', atribuido_id: o.atribuidoId || null, criado_por: o.criadoPor || null, os_gerada_id: o.osGeradaId || null, notas: o.notas || [], data_criacao: msToISO(o.dataCriacao), data_modificacao: msToISO(o.dataModificacao) })
+            },
+        };
+
+        function gerarId() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+        }
+        function escapeHtmlSimples(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+        function getDataHoje() {
+            return new Date().toISOString().slice(0, 10);
+        }
+        function _tenantId() { return usuarioLogado.role === 'admin' ? usuarioLogado.id : usuarioLogado.adminId; }
+        // Motor de notificações (replicado do index.html — este ficheiro corre à parte).
+        function _notificarFuncionario(destinatarioId, titulo, mensagem, adminId) {
+            if (!destinatarioId || !titulo) return;
+            dados.notificacoes = dados.notificacoes || [];
+            const agora = Date.now();
+            const jaExiste = dados.notificacoes.some(n =>
+                n.destinatarioId === destinatarioId && n.titulo === titulo && n.mensagem === (mensagem || '') &&
+                (agora - (n.dataCriacao || 0)) < 20 * 60 * 60 * 1000
+            );
+            if (jaExiste) return;
+            dados.notificacoes.push({ id: gerarId(), adminId: adminId || null, destinatarioId, titulo, mensagem: mensagem || '', lida: false, dataCriacao: Date.now() });
+            guardarDados(dados, ['notificacoes']);
+            supa.functions.invoke('enviar-push', { body: { utilizador_id: destinatarioId, titulo, corpo: mensagem || '' } }).catch(err => console.warn('notificação push (Assist):', err));
+        }
+        function getFuncionariosByAdmin(adminId) {
+            return dados.funcionarios?.filter(f =>
+                f.adminId === adminId && f.role !== 'admin' && f.role !== 'superadmin' && f.id !== adminId
+            ) || [];
+        }
+        function _pessoasParaAtribuir(adminId) {
+            const adminRec = dados.administradores?.find(a => a.id === adminId);
+            return [
+                ...(adminRec ? [{ id: adminRec.id, nome: adminRec.nome + ' (Admin)' }] : []),
+                ...getFuncionariosByAdmin(adminId)
+            ];
+        }
+        function obterNomeFuncionario(id) {
+            if (!id) return '—';
+            const f = dados.funcionarios?.find(f => f.id === id);
+            if (f) return f.nome;
+            const e = dados.encarregados?.find(e => e.id === id);
+            if (e) return e.nome;
+            const a = dados.administradores?.find(a => a.id === id);
+            if (a) return a.nome + ' (Admin)';
+            return '(removido)';
+        }
+        function aplicarMascaraTelefone(el) {
+            let v = el.value;
+            if (!v.trim()) return;
+            if (v.startsWith('+')) {
+                const m = v.match(/^(\+\d{1,4})\s?(.*)$/);
+                el.value = m ? (m[1] + ' ' + m[2].replace(/[^\d]/g, '').slice(0, 9)) : v;
+            } else {
+                el.value = '+351 ' + v.replace(/[^\d]/g, '').slice(0, 9);
+            }
+        }
+        function telefoneValido(v) {
+            v = (v || '').trim();
+            if (!v) return true;
+            const m = v.match(/^\+\d{1,4}\s?(\d+)$/);
+            return !!m && m[1].length === 9;
+        }
+        function _empresaIniciais(nome) {
+            const limpo = (nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z]/g, '');
+            if (!limpo) return 'XX';
+            return (limpo[0] + limpo[limpo.length - 1]).toUpperCase();
+        }
+        // Iniciais da empresa para o número da OS: 1ª letra do 1º nome + 1ª letra do 2º nome
+        // (ex: "VR Alarmes" -> "VA"). Igual à função usada na app principal — tem de dar sempre
+        // o mesmo resultado, senão a numeração de OS diverge consoante o sítio onde é criada.
+        function _empresaIniciaisOS(nome) {
+            const limpo = (nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z\s]/g, '').trim();
+            if (!limpo) return 'XX';
+            const partes = limpo.split(/\s+/).filter(Boolean);
+            if (partes.length >= 2) return (partes[0][0] + partes[1][0]).toUpperCase();
+            const uma = partes[0] || '';
+            return (uma[0] + (uma[1] || uma[0] || 'X')).toUpperCase();
+        }
+        function _prefixoNumeroOS() {
+            const admin = dados.administradores?.find(a => a.id === _tenantId());
+            const iniciais = _empresaIniciaisOS(admin?.empresa || admin?.nome || '');
+            const agora = new Date();
+            const mm = String(agora.getMonth() + 1).padStart(2, '0');
+            const dd = String(agora.getDate()).padStart(2, '0');
+            const yy = String(agora.getFullYear()).slice(-2);
+            // A chave inclui o dia, para que a sequência reinicie em 1 automaticamente todos os dias
+            // — igual à app principal, para nunca haver dois números de OS iguais entre sítios.
+            return { texto: `OS-${iniciais}${mm}${dd}`, chave: `os_${yy}${mm}${dd}` };
+        }
+        function gerarNumeroRegisto() {
+            const { texto } = _prefixoNumeroOS();
+            const num = Math.floor(Math.random() * 900) + 100;
+            return `${texto}-${num}`;
+        }
+        async function proximoNumero(chave) {
+            const adminId = usuarioLogado?.adminId || usuarioLogado?.id;
+            try {
+                const { data, error } = await supa.rpc('proximo_numero', { p_admin: adminId, p_chave: chave });
+                if (error || data == null) throw error || new Error('sem valor');
+                return Number(data);
+            } catch (e) { console.error('proximo_numero:', e.message || e); return null; }
+        }
+        async function gerarNumeroRegistoServidor() {
+            const { texto, chave } = _prefixoNumeroOS();
+            const n = await proximoNumero(chave);
+            return n != null ? `${texto}-${n}` : gerarNumeroRegisto();
+        }
+
+        // ===================== Sessão partilhada com a aplicação principal =====================
+        async function _obterTenantDoUser(userId) {
+            try {
+                const { data: perfil, error } = await supa.from('perfis').select('*').eq('id', userId).single();
+                if (error || !perfil) return { tenantId: null, superAdmin: false };
+                if (perfil.papel === 'superadmin') return { tenantId: null, superAdmin: true };
+                if (perfil.papel === 'admin') return { tenantId: perfil.registo_id, superAdmin: false };
+                return { tenantId: perfil.admin_id, superAdmin: false };
+            } catch (e) { return { tenantId: null, superAdmin: false }; }
+        }
+        let _snapAssist = {}; // _snapAssist[col] = Map(id -> json) — última versão conhecida como gravada no servidor
+        function _construirSnapAssist() {
+            _snapAssist = {};
+            for (const col of ORDEM_CRM) {
+                const m = new Map();
+                for (const o of (dados[col] || [])) m.set(o.id, JSON.stringify(M[col].to(o)));
+                _snapAssist[col] = m;
+            }
+        }
+        async function carregarDadosCRM(tenantId, ehSuperAdmin) {
+            const resultados = await Promise.all(ORDEM_CRM.map(col => {
+                const meta = M[col];
+                let q = supa.from(meta.tabela).select('*');
+                if (!ehSuperAdmin && tenantId) {
+                    const coluna = (col === 'administradores') ? 'id' : 'admin_id';
+                    q = q.eq(coluna, tenantId);
+                }
+                return q;
+            }));
+            ORDEM_CRM.forEach((col, i) => {
+                const { data, error } = resultados[i];
+                if (error) { console.warn('carregar ' + col + ':', error.message); dados[col] = dados[col] || []; return; }
+                dados[col] = (data || []).map(M[col].from);
+            });
+            _construirSnapAssist(); // marca este estado como "sincronizado" — só grava a partir daqui o que mudar de facto
+        }
+        function mostrarStatusCRM(msg) {
+            const el = document.getElementById('statusToast');
+            el.innerHTML = msg;
+            el.style.display = 'block';
+            clearTimeout(window._statusToastTimer);
+            window._statusToastTimer = setTimeout(() => { el.style.display = 'none'; }, 6000);
+        }
+        // Protege qualquer botão do formulário principal contra duplo clique/toque — desativa-o
+        // e mostra "A guardar…" enquanto a função assíncrona corre, restaura no fim mesmo se
+        // der erro. Evita criar Assistências/OS a dobrar em ligações lentas.
+        function _protegerSubmit(fnAsync) {
+            return async function (ev) {
+                if (ev) ev.preventDefault();
+                const btn = document.querySelector('#modalGenericoForm button[type="submit"]');
+                if (btn && btn.disabled) return;
+                const original = btn ? btn.innerHTML : null;
+                if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A guardar…'; }
+                try { await fnAsync(); }
+                finally { if (btn) { btn.disabled = false; btn.innerHTML = original; } }
+            };
+        }
+        async function guardarDados(d, apenas) {
+            let houveErro = null;
+            const colecoes = apenas && apenas.length ? apenas : ORDEM_CRM;
+            for (const col of colecoes) {
+                const meta = M[col];
+                const lista = d[col] || [];
+                if (!_snapAssist[col]) _snapAssist[col] = new Map();
+                // Só reenvia linhas que mudaram desde o último carregamento/gravação — isto evita
+                // que uma aba/sessão antiga, que ainda tenha em memória uma linha já apagada
+                // noutro lado, a "ressuscite" com um upsert cego de tudo o que tem localmente.
+                const rows = [];
+                const idsAtuais = new Set();
+                for (const o of lista) {
+                    idsAtuais.add(o.id);
+                    const row = meta.to(o);
+                    const json = JSON.stringify(row);
+                    if (_snapAssist[col].get(o.id) !== json) rows.push({ id: o.id, row, json });
+                }
+                if (rows.length) {
+                    const { error } = await supa.from(meta.tabela).upsert(rows.map(r => r.row), { onConflict: 'id' });
+                    if (error) { console.error('upsert ' + meta.tabela + ':', error.message); houveErro = error; }
+                    else rows.forEach(r => _snapAssist[col].set(r.id, r.json));
+                }
+                // Linhas que desapareceram do array local desde o último snapshot — apaga a sério
+                // no servidor (mesma lógica do index.html), em vez de as deixar órfãs lá.
+                const paraApagar = [];
+                for (const id of _snapAssist[col].keys()) if (!idsAtuais.has(id)) paraApagar.push(id);
+                if (paraApagar.length) {
+                    const { error: errDel } = await supa.from(meta.tabela).delete().in('id', paraApagar);
+                    if (errDel) { console.error('delete ' + meta.tabela + ':', errDel.message); houveErro = houveErro || errDel; }
+                    else paraApagar.forEach(id => _snapAssist[col].delete(id));
+                }
+            }
+            if (houveErro) {
+                mostrarStatusCRM('⚠️ Algumas alterações podem não ter sido guardadas no servidor: ' + houveErro.message + ' <a onclick="guardarDados(dados)">Tentar de novo</a>');
+                throw houveErro;
+            }
+        }
+
+        // Notifica uma pessoa (registo em "notificacoes" + push a sério). Segue a mesma regra já
+        // usada no resto do TotalGest: admin/subadmin recebem sempre o ícone do TotalGest; o resto
+        // da equipa recebe o logo da empresa (se estiver definido).
+        async function _crmNotificar(utilizadorId, titulo, mensagem) {
+            if (!utilizadorId) return;
+            const tid = _tenantId();
+            const adminRec = dados.administradores?.find(a => a.id === tid);
+            if (!dados.notificacoes) dados.notificacoes = [];
+            dados.notificacoes.push({ id: gerarId(), adminId: tid, destinatarioId: utilizadorId, titulo, mensagem, lida: false, dataCriacao: Date.now() });
+            const ehAdminOuSub = utilizadorId === tid || (dados.funcionarios || []).some(f => f.id === utilizadorId && f.role === 'subadmin');
+            const icone = ehAdminOuSub ? '' : (adminRec?.logo || '');
+            try { await supa.functions.invoke('enviar-push', { body: { utilizador_id: utilizadorId, titulo, corpo: mensagem, icone } }); }
+            catch (e) { console.warn('push falhou para', utilizadorId, e); }
+        }
+
+        // ===================== Assistências =====================
+        const ASSIST_PRIORIDADES = { baixa: { label: 'Baixa', cor: '#64748b' }, normal: { label: 'Normal', cor: '#2456d8' }, alta: { label: 'Alta', cor: '#b0650a' }, urgente: { label: 'Urgente', cor: '#d1342f' } };
+        const ASSIST_ESTADOS = { aberta: { label: 'Aberta', cor: '#2456d8', bg: 'var(--blue-bg)' }, andamento: { label: 'Em atendimento', cor: '#b0650a', bg: 'var(--yellow-bg)' }, resolvida: { label: 'Resolvida', cor: '#178a4c', bg: 'var(--green-bg)' }, fechada: { label: 'Fechada', cor: '#828ba3', bg: 'var(--border-soft)' } };
+        function gerarNumeroAssistencia() {
+            const iniciais = _empresaIniciais((dados.administradores?.find(a => a.id === _tenantId())?.empresa) || (dados.administradores?.find(a => a.id === _tenantId())?.nome) || '');
+            const agora = new Date();
+            const mm = String(agora.getMonth() + 1).padStart(2, '0');
+            const yy = String(agora.getFullYear()).slice(-2);
+            const base = `AST-${iniciais}${mm}${yy}`;
+            const existentes = (dados.assistencias || []).filter(a => a.numero && a.numero.startsWith(base));
+            return base + '-' + (existentes.length + 1);
+        }
+        function renderizarDashboardAssist() {
+            const tid = _tenantId();
+            const lista = (dados.assistencias || []).filter(a => a.adminId === tid).sort((a, b) => (b.dataCriacao || 0) - (a.dataCriacao || 0));
+            const trintaDias = Date.now() - 30 * 24 * 60 * 60 * 1000;
+            const emAberto = lista.filter(a => a.estado === 'aberta' || a.estado === 'andamento');
+            document.getElementById('assistDashAbertas').textContent = lista.filter(a => a.estado === 'aberta').length;
+            document.getElementById('assistDashAndamento').textContent = lista.filter(a => a.estado === 'andamento').length;
+            document.getElementById('assistDashResolvidas').textContent = lista.filter(a => (a.estado === 'resolvida' || a.estado === 'fechada') && (a.dataModificacao || a.dataCriacao || 0) >= trintaDias).length;
+            document.getElementById('assistDashOsGeradas').textContent = lista.filter(a => a.osGeradaId && (a.dataCriacao || 0) >= trintaDias).length;
+
+            // Tempo médio de resolução (últimos 30 dias)
+            const resolvidasRecentes = lista.filter(a => ['resolvida', 'fechada'].includes(a.estado) && a.dataModificacao && a.dataCriacao && a.dataModificacao >= trintaDias);
+            const tempoMedioH = resolvidasRecentes.length ? resolvidasRecentes.reduce((s, a) => s + (a.dataModificacao - a.dataCriacao), 0) / resolvidasRecentes.length / 3600000 : null;
+            document.getElementById('assistDashTempoMedio').textContent = tempoMedioH == null ? '—' : (tempoMedioH < 24 ? Math.round(tempoMedioH) + 'h' : Math.round(tempoMedioH / 24) + ' dias');
+
+            // Fora do SLA de 48h (em aberto há mais de 48h e ainda não resolvida)
+            const foraSla = emAberto.filter(a => (Date.now() - (a.dataCriacao || Date.now())) >= 48 * 3600000);
+            document.getElementById('assistDashForaSla').textContent = foraSla.length;
+            const alertaEl = document.getElementById('assistDashAlertaSla');
+            if (foraSla.length) {
+                alertaEl.style.display = 'block';
+                alertaEl.innerHTML = `<i class="fas fa-triangle-exclamation"></i> ${foraSla.length} assistência${foraSla.length > 1 ? 's' : ''} aberta${foraSla.length > 1 ? 's' : ''} há mais de 48h sem resolução — clica para ver.`;
+            } else { alertaEl.style.display = 'none'; }
+
+            // Distribuição por prioridade (só das que estão em aberto)
+            const porPrioridade = { urgente: 0, alta: 0, normal: 0, baixa: 0 };
+            emAberto.forEach(a => { porPrioridade[a.prioridade || 'normal'] = (porPrioridade[a.prioridade || 'normal'] || 0) + 1; });
+            const maxPrio = Math.max(1, ...Object.values(porPrioridade));
+            document.getElementById('assistDashPrioridades').innerHTML = Object.entries(porPrioridade).map(([k, v]) => {
+                const info = ASSIST_PRIORIDADES[k];
+                return `<div style="margin-bottom:8px;">
+                    <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:2px;"><span>${info.label}</span><span>${v}</span></div>
+                    <div style="background:var(--border-soft);border-radius:4px;height:8px;"><div style="background:${info.cor};height:8px;border-radius:4px;width:${(v / maxPrio * 100)}%;"></div></div>
+                </div>`;
+            }).join('');
+
+            const recentes = lista.slice(0, 8);
+            document.getElementById('emptyDashAssist').style.display = recentes.length ? 'none' : 'block';
+            document.getElementById('tabelaDashAssist').innerHTML = recentes.map(a => {
+                const est = ASSIST_ESTADOS[a.estado] || ASSIST_ESTADOS.aberta;
+                const pri = ASSIST_PRIORIDADES[a.prioridade] || ASSIST_PRIORIDADES.normal;
+                return `<tr style="cursor:pointer;" onclick="mudarTabCRM('assistencias');setTimeout(()=>abrirModalAssistencia('${a.id}'),60);">
+                    <td>${escapeHtmlSimples(a.numero || '—')}</td>
+                    <td>${escapeHtmlSimples(obterNomeCliente(a.clienteId))}</td>
+                    <td>${escapeHtmlSimples(a.assunto || '')}</td>
+                    <td><span class="badge" style="background:${pri.cor}22;color:${pri.cor};">${pri.label}</span></td>
+                    <td><span class="badge" style="background:${est.bg};color:${est.cor};">${est.label}</span></td>
+                    <td>${a.dataCriacao ? new Date(a.dataCriacao).toLocaleDateString('pt-PT') : '—'}</td>
+                </tr>`;
+            }).join('');
+        }
+        function obterNomeCliente(id) {
+            if (!id) return '—';
+            const c = dados.clientes?.find(c => c.id === id);
+            return c ? c.nome : '(removido)';
+        }
+        function renderizarAssistencias() {
+            const tid = _tenantId();
+            const filtroEstado = document.getElementById('assistFiltroEstado')?.value || '';
+            const filtroPrioridade = document.getElementById('assistFiltroPrioridade')?.value || '';
+            let lista = (dados.assistencias || []).filter(a => a.adminId === tid);
+            if (filtroEstado) lista = lista.filter(a => a.estado === filtroEstado);
+            if (filtroPrioridade) lista = lista.filter(a => a.prioridade === filtroPrioridade);
+            lista.sort((a, b) => (b.dataCriacao || 0) - (a.dataCriacao || 0));
+            document.getElementById('emptyAssistencias').style.display = lista.length ? 'none' : 'block';
+            document.getElementById('tabelaAssistencias').innerHTML = lista.map(a => {
+                const est = ASSIST_ESTADOS[a.estado] || ASSIST_ESTADOS.aberta;
+                const pri = ASSIST_PRIORIDADES[a.prioridade] || ASSIST_PRIORIDADES.normal;
+                const foraSla = !['resolvida', 'fechada'].includes(a.estado) && (Date.now() - (a.dataCriacao || Date.now())) >= 48 * 3600000;
+                return `<tr>
+                    <td>${escapeHtmlSimples(a.numero || '—')}${foraSla ? ' <i class="fas fa-triangle-exclamation" style="color:#d1342f;" title="Aberta há mais de 48h"></i>' : ''}</td>
+                    <td>${escapeHtmlSimples(obterNomeCliente(a.clienteId))}</td>
+                    <td>${escapeHtmlSimples(a.assunto || '')}</td>
+                    <td><span class="badge" style="background:${pri.cor}22;color:${pri.cor};">${pri.label}</span></td>
+                    <td><span class="badge" style="background:${est.bg};color:${est.cor};">${est.label}</span></td>
+                    <td>${escapeHtmlSimples(obterNomeFuncionario(a.atribuidoId))}</td>
+                    <td>${a.dataCriacao ? new Date(a.dataCriacao).toLocaleDateString('pt-PT') : '—'}</td>
+                    <td style="white-space:nowrap;">
+                        <button class="btn btn-sm btn-outline" onclick="abrirModalAssistencia('${a.id}')" title="Ver/editar"><i class="fas fa-pen"></i></button>
+                        ${a.estado !== 'fechada' && !a.osGeradaId ? `<button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;" onclick="criarOSDeAssistencia('${a.id}')" title="Criar OS"><i class="fas fa-hard-hat"></i></button>` : ''}
+                        ${a.osGeradaId ? `<span class="badge" style="background:var(--green-bg);color:var(--green);" title="OS já criada"><i class="fas fa-check"></i> OS criada</span>` : ''}
+                        <button class="btn btn-sm btn-outline" style="color:var(--red);" onclick="excluirAssistencia('${a.id}')" title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+        function abrirModalAssistencia(id) {
+            const tid = _tenantId();
+            const item = id ? dados.assistencias?.find(a => a.id === id) : null;
+            const clientesTenant = (dados.clientes || []).filter(c => c.adminId === tid);
+            const pessoas = _pessoasParaAtribuir(tid);
+            const cliente = item?.clienteId ? dados.clientes?.find(c => c.id === item.clienteId) : null;
+            document.getElementById('modalGenericoTitulo').innerHTML = item ? `<i class="fas fa-headset"></i> ${escapeHtmlSimples(item.numero || 'Assistência')}` : '<i class="fas fa-headset"></i> Nova Assistência';
+            document.getElementById('modalGenericoCampos').innerHTML = `
+                ${item ? _assistBadgeSLA(item) : ''}
+                <div class="form-group"><label>Cliente</label>
+                    <select id="assist_cliente" onchange="_assistAtualizarContactosRapidos()"><option value="">— Sem cliente associado —</option>${clientesTenant.map(c => `<option value="${c.id}" ${item?.clienteId === c.id ? 'selected' : ''}>${escapeHtmlSimples(c.nome)}</option>`).join('')}</select>
+                </div>
+                <div id="assist_contactos_rapidos">${_assistContactosRapidosHTML(cliente)}</div>
+                <div class="form-group"><label>Assunto *</label><input type="text" id="assist_assunto" value="${item ? escapeHtmlSimples(item.assunto || '') : ''}" placeholder="Ex: Alarme a disparar sem motivo" required></div>
+                <div class="form-group"><label>Descrição do problema</label><textarea id="assist_descricao" rows="4" placeholder="Detalhes reportados pelo cliente...">${item ? escapeHtmlSimples(item.descricao || '') : ''}</textarea></div>
+                <div style="display:flex;gap:14px;">
+                    <div class="form-group" style="flex:1;"><label>Prioridade</label>
+                        <select id="assist_prioridade">${Object.entries(ASSIST_PRIORIDADES).map(([k, v]) => `<option value="${k}" ${(item?.prioridade || 'normal') === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select>
+                    </div>
+                    <div class="form-group" style="flex:1;"><label>Estado</label>
+                        <select id="assist_estado">${Object.entries(ASSIST_ESTADOS).map(([k, v]) => `<option value="${k}" ${(item?.estado || 'aberta') === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Atribuído a</label>
+                    <select id="assist_atribuido"><option value="">— Por atribuir —</option>${pessoas.map(p => `<option value="${p.id}" ${item?.atribuidoId === p.id ? 'selected' : ''}>${escapeHtmlSimples(p.nome)}</option>`).join('')}</select>
+                </div>
+                ${item?.osGeradaId ? `<div class="help-text" style="color:var(--green);"><i class="fas fa-check-circle"></i> Já tem uma OS criada a partir desta assistência.</div>` : ''}
+                ${item ? _assistNotasHTML(item) : ''}
+            `;
+            document.getElementById('modalGenericoForm').onsubmit = _protegerSubmit(() => guardarAssistencia(id));
+            document.getElementById('modalGenericoOverlay').classList.add('open');
+        }
+        // SLA visual: quantas horas está aberta, com aviso se passar de 48h sem resolver
+        function _assistBadgeSLA(item) {
+            if (['resolvida', 'fechada'].includes(item.estado)) {
+                const horas = item.dataModificacao ? Math.round((item.dataModificacao - item.dataCriacao) / 3600000) : null;
+                return horas != null ? `<div class="help-text" style="margin-bottom:10px;"><i class="fas fa-check-circle" style="color:var(--green);"></i> Resolvida em ${horas < 24 ? horas + 'h' : Math.round(horas / 24) + ' dia(s)'}.</div>` : '';
+            }
+            const horasAberta = Math.round((Date.now() - (item.dataCriacao || Date.now())) / 3600000);
+            const critico = horasAberta >= 48;
+            return `<div style="margin-bottom:10px;padding:8px 12px;border-radius:8px;background:${critico ? 'var(--red-bg)' : 'var(--blue-bg)'};color:${critico ? 'var(--red)' : 'var(--blue)'};font-size:.82rem;font-weight:600;">
+                <i class="fas ${critico ? 'fa-triangle-exclamation' : 'fa-clock'}"></i> Aberta há ${horasAberta < 24 ? horasAberta + ' hora(s)' : Math.round(horasAberta / 24) + ' dia(s)'}${critico ? ' — fora do SLA de 48h' : ''}
+            </div>`;
+        }
+        function _assistContactosRapidosHTML(cliente) {
+            if (!cliente || (!cliente.telefone && !cliente.telemovel)) return '';
+            const tel = cliente.telefone || cliente.telemovel;
+            const wpp = tel.replace(/[^0-9+]/g, '').replace(/^\+/, '');
+            return `<div style="display:flex;gap:8px;margin:-4px 0 12px;">
+                <a href="tel:${escapeHtmlSimples(tel)}" class="btn btn-sm btn-outline"><i class="fas fa-phone"></i> Ligar</a>
+                <a href="https://wa.me/${wpp}" target="_blank" rel="noopener" class="btn btn-sm btn-outline"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                ${cliente.email ? `<a href="mailto:${escapeHtmlSimples(cliente.email)}" class="btn btn-sm btn-outline"><i class="fas fa-envelope"></i> Email</a>` : ''}
+            </div>`;
+        }
+        function _assistAtualizarContactosRapidos() {
+            const cid = document.getElementById('assist_cliente').value;
+            const cliente = cid ? dados.clientes?.find(c => c.id === cid) : null;
+            document.getElementById('assist_contactos_rapidos').innerHTML = _assistContactosRapidosHTML(cliente);
+        }
+        // Histórico/notas internas — timeline simples por assistência (quem disse o quê e quando)
+        function _assistNotasHTML(item) {
+            const notas = item.notas || [];
+            return `<div class="form-group ff-span2" style="margin-top:6px;">
+                <label>Histórico / notas internas</label>
+                <div id="assist_notas_lista" style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;">
+                    ${notas.length ? notas.slice().reverse().map(n => `
+                        <div style="padding:6px 0;border-bottom:1px solid var(--border-soft);font-size:.82rem;">
+                            <div>${escapeHtmlSimples(n.texto)}</div>
+                            <div class="help-text">${escapeHtmlSimples(n.autor || '')} · ${n.data ? new Date(n.data).toLocaleString('pt-PT') : ''}</div>
+                        </div>`).join('') : '<span class="help-text">Ainda sem notas.</span>'}
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="assist_nova_nota" placeholder="Escrever uma nota rápida (ex: 'cliente confirmou visita amanhã')..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();adicionarNotaAssistencia('${item.id}');}" />
+                    <button type="button" class="btn btn-sm btn-outline" onclick="adicionarNotaAssistencia('${item.id}')"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>`;
+        }
+        async function adicionarNotaAssistencia(id) {
+            const input = document.getElementById('assist_nova_nota');
+            const texto = input.value.trim();
+            if (!texto) return;
+            const item = dados.assistencias?.find(a => a.id === id);
+            if (!item) return;
+            if (!item.notas) item.notas = [];
+            item.notas.push({ texto, autor: usuarioLogado?.nome || 'Eu', data: Date.now() });
+            input.value = '';
+            document.getElementById('assist_notas_lista').innerHTML = item.notas.slice().reverse().map(n => `
+                <div style="padding:6px 0;border-bottom:1px solid var(--border-soft);font-size:.82rem;">
+                    <div>${escapeHtmlSimples(n.texto)}</div>
+                    <div class="help-text">${escapeHtmlSimples(n.autor || '')} · ${new Date(n.data).toLocaleString('pt-PT')}</div>
+                </div>`).join('');
+            try { await guardarDados(dados, ['assistencias']); } catch (e) { /* fica no ecrã, tenta sincronizar depois */ }
+            // Avisa o cliente que abriu o pedido — só quando é a equipa a responder, não quando é
+            // o próprio cliente a escrever (senão notificava-se a si próprio).
+            if (item.clienteId && usuarioLogado?.role !== 'cliente') {
+                _notificarFuncionario(item.clienteId, '💬 Resposta ao teu pedido de assistência', (item.assunto ? item.assunto + ' — ' : '') + texto, item.adminId);
+            }
+        }
+        async function guardarAssistencia(id) {
+            const tid = _tenantId();
+            const assunto = document.getElementById('assist_assunto').value.trim();
+            if (!assunto) { alert('Indica o assunto da assistência.'); return; }
+            let item = id ? dados.assistencias?.find(a => a.id === id) : null;
+            const novo = !item;
+            if (novo) {
+                item = { id: gerarId(), adminId: tid, numero: gerarNumeroAssistencia(), criadoPor: usuarioLogado?.id || null, dataCriacao: Date.now() };
+                if (!dados.assistencias) dados.assistencias = [];
+                dados.assistencias.push(item);
+            }
+            item.clienteId = document.getElementById('assist_cliente').value || null;
+            item.assunto = assunto;
+            item.descricao = document.getElementById('assist_descricao').value.trim() || null;
+            item.prioridade = document.getElementById('assist_prioridade').value;
+            item.estado = document.getElementById('assist_estado').value;
+            const atribuidoNovo = document.getElementById('assist_atribuido').value || null;
+            const atribuidoMudou = item.atribuidoId !== atribuidoNovo;
+            item.atribuidoId = atribuidoNovo;
+            item.dataModificacao = Date.now();
+
+            if ((novo || atribuidoMudou) && item.atribuidoId) {
+                await _crmNotificar(item.atribuidoId, '🎧 Assistência atribuída', `Foste atribuído à assistência ${item.numero} — "${item.assunto}".`);
+            }
+
+            document.getElementById('modalGenericoOverlay').classList.remove('open');
+            try { await guardarDados(dados, ['assistencias', 'notificacoes']); mostrarStatusCRM('✅ Assistência guardada.'); }
+            catch (e) { alert('⚠️ Ficou no ecrã, mas ainda não foi possível confirmar no servidor. Tenta novamente.'); }
+            renderizarTudo();
+        }
+        function excluirAssistencia(id) {
+            const a = dados.assistencias?.find(x => x.id === id);
+            if (!confirm('Eliminar esta assistência?' + (a?.osGeradaId ? ' Já tem uma OS gerada — vais avisar quem está atribuído a ela de que a assistência foi cancelada.' : ''))) return;
+            if (a?.osGeradaId) {
+                const os = dados.servicos?.find(s => s.id === a.osGeradaId);
+                if (os) {
+                    os.assistenciaId = null; // deixa de estar ligada a uma assistência (a OS em si mantém-se, com o trabalho já registado)
+                    (os.funcionariosIds || []).forEach(fid => { _crmNotificar(fid, '⚠️ Assistência cancelada', `A assistência ${a.numero} que deu origem à OS ${os.numeroRegisto || ''} foi eliminada/cancelada.`); });
+                }
+            }
+            dados.assistencias = (dados.assistencias || []).filter(a => a.id !== id);
+            (async () => {
+                try {
+                    // Apaga mesmo a linha no servidor — sem isto, o upsert de guardarDados()
+                    // só grava o que sobra no array e a linha antiga fica órfã na base de
+                    // dados, reaparecendo no próximo carregamento de dados.
+                    // Pedimos .select('id') de volta: um RLS que bloqueie o DELETE normalmente
+                    // não dá erro nenhum — só devolve 0 linhas apagadas — e sem isto nunca
+                    // saberíamos que na prática não apagou nada no servidor.
+                    const { data: linhasApagadas, error } = await supa.from('assistencias').delete().eq('id', id).select('id');
+                    if (error) throw error;
+                    if (!linhasApagadas || linhasApagadas.length === 0) {
+                        alert('⚠️ A assistência desapareceu do ecrã, mas o servidor não confirmou o apagamento (provavelmente bloqueado pelas permissões/RLS da tabela "assistencias"). Vai reaparecer ao recarregar a página. Verifica a política de DELETE dessa tabela no Supabase.');
+                        return;
+                    }
+                    await guardarDados(dados, ['servicos']);
+                    mostrarStatusCRM('✅ Assistência eliminada.');
+                } catch (e) {
+                    console.error('eliminar assistência:', e);
+                    alert('⚠️ Não foi possível eliminar no servidor (' + (e?.message || e) + '). Tenta novamente.');
+                }
+                renderizarTudo();
+            })();
+            renderizarTudo();
+        }
+        // Criar OS a partir de uma assistência — de momento sem restrição de papel: qualquer
+        // pessoa autenticada pode gerar a OS diretamente daqui.
+        function criarOSDeAssistencia(assistId) {
+            const a = dados.assistencias?.find(x => x.id === assistId);
+            if (!a) return;
+            const tid = _tenantId();
+            const cliente = a.clienteId ? dados.clientes?.find(c => c.id === a.clienteId) : null;
+            const clientesTenant = (dados.clientes || []).filter(c => c.adminId === tid);
+            const funcionariosTenant = (dados.funcionarios || []).filter(f => f.adminId === tid && !f.suspenso);
+            document.getElementById('modalGenericoTitulo').innerHTML = '<i class="fas fa-hard-hat"></i> Criar OS a partir da assistência';
+            document.getElementById('modalGenericoCampos').innerHTML = `
+                <div class="form-group"><label>Cliente</label>
+                    <select id="assistOsCliente"><option value="">— Sem cliente —</option>${clientesTenant.map(c => `<option value="${c.id}" ${a.clienteId === c.id ? 'selected' : ''}>${escapeHtmlSimples(c.nome)}</option>`).join('')}</select>
+                </div>
+                <div class="form-group"><label>Morada</label><input type="text" id="assistOsMorada" value="${cliente?.morada || ''}"></div>
+                <div class="form-group"><label>Data</label><input type="date" id="assistOsData" value="${getDataHoje()}"></div>
+                <div class="form-group"><label>Hora</label><input type="time" id="assistOsHora" value="09:00"></div>
+                <div class="form-group"><label>Descrição</label><textarea id="assistOsDescricao" rows="3">${escapeHtmlSimples((a.assunto || '') + (a.descricao ? ' — ' + a.descricao : ''))}</textarea></div>
+                <div class="form-group ff-span2"><label>Funcionários atribuídos</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;">
+                        ${funcionariosTenant.map(f => `<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:.85rem;">
+                            <input type="checkbox" class="assist-os-func-chk" value="${f.id}" ${a.atribuidoId === f.id ? 'checked' : ''} style="width:auto;"> ${escapeHtmlSimples(f.nome)}
+                        </label>`).join('') || '<span class="help-text">Sem funcionários disponíveis.</span>'}
+                    </div>
+                </div>
+            `;
+            document.getElementById('modalGenericoForm').onsubmit = _protegerSubmit(() => _confirmarCriarOSDeAssistencia(assistId));
+            document.getElementById('modalGenericoOverlay').classList.add('open');
+        }
+        async function _confirmarCriarOSDeAssistencia(assistId) {
+            const a = dados.assistencias?.find(x => x.id === assistId);
+            if (!a) return;
+            const tid = _tenantId();
+            const clienteIdEscolhido = document.getElementById('assistOsCliente')?.value || null;
+            const funcionariosIds = [...document.querySelectorAll('.assist-os-func-chk:checked')].map(el => el.value);
+            let numeroOS;
+            try { numeroOS = await gerarNumeroRegistoServidor(); } catch (e) { numeroOS = gerarNumeroRegisto(); }
+            const novaOS = {
+                id: gerarId(), adminId: tid, clienteId: clienteIdEscolhido,
+                funcionarioId: funcionariosIds[0] || null, funcionariosIds,
+                assistenciaId: a.id,
+                morada: document.getElementById('assistOsMorada')?.value || '',
+                data: document.getElementById('assistOsData')?.value || getDataHoje(),
+                hora: document.getElementById('assistOsHora')?.value || '09:00',
+                status: 'pendente',
+                descricao: '[Assistência] ' + (document.getElementById('assistOsDescricao')?.value || a.assunto),
+                numeroRegisto: numeroOS, origem: 'assistencia', tiposTrabalho: [], dataCriacao: Date.now()
+            };
+            if (!dados.servicos) dados.servicos = [];
+            dados.servicos.push(novaOS);
+            a.osGeradaId = novaOS.id;
+            a.dataModificacao = Date.now();
+
+            const clienteNomeOS = clienteIdEscolhido ? (dados.clientes?.find(c => c.id === clienteIdEscolhido)?.nome || '') : '';
+            for (const fid of funcionariosIds) {
+                await _crmNotificar(fid, '🛠️ Nova Ordem de Serviço', `Foste atribuído à OS ${numeroOS}${clienteNomeOS ? ' — ' + clienteNomeOS : ''}, criada a partir da assistência ${a.numero}.`);
+            }
+
+            document.getElementById('modalGenericoOverlay').classList.remove('open');
+            try {
+                await guardarDados(dados, ['servicos', 'assistencias', 'notificacoes']);
+                alert('✅ Ordem de Serviço ' + numeroOS + ' criada — já podes agendá-la e ajustar detalhes na aplicação principal.');
+            } catch (e) {
+                alert('⚠️ Ficou no ecrã, mas ainda não foi possível confirmar no servidor. Tenta novamente.');
+            }
+            renderizarTudo();
+        }
+
+        function renderizarTudo() {
+            renderizarDashboardAssist();
+            renderizarAssistencias();
+        }
+        const _crmMeta = {
+            'dashboard': { titulo: 'Dashboard', icone: 'fa-chart-line', botao: '' },
+            'assistencias': { titulo: 'Assistências', icone: 'fa-headset', botao: '<button class="btn btn-primary" onclick="abrirModalAssistencia(null)"><i class="fas fa-plus"></i> Nova Assistência</button>' },
+        };
+        function _crmAbrirMenu() {
+            document.querySelector('.crm-sidebar')?.classList.add('aberta');
+            document.querySelector('.crm-sidebar-backdrop')?.classList.add('aberta');
+        }
+        function _crmFecharMenu() {
+            document.querySelector('.crm-sidebar')?.classList.remove('aberta');
+            document.querySelector('.crm-sidebar-backdrop')?.classList.remove('aberta');
+        }
+        function mudarTabCRM(nome) {
+            _crmFecharMenu(); // ao escolher uma secção no telemóvel, fecha o menu automaticamente
+            document.querySelectorAll('.secao-crm').forEach(el => el.classList.remove('ativa'));
+            document.querySelectorAll('.crm-nav-item').forEach(el => el.classList.remove('ativo'));
+            document.getElementById('secao-' + nome).classList.add('ativa');
+            document.querySelector('.crm-nav-item[data-tab="' + nome + '"]').classList.add('ativo');
+            const meta = _crmMeta[nome];
+            if (meta) {
+                document.getElementById('crmTopTitulo').textContent = meta.titulo;
+                document.getElementById('crmTopIcon').innerHTML = '<i class="fas ' + meta.icone + '"></i>';
+                document.getElementById('crmTopAcoes').innerHTML = '<a href="index.html" class="btn btn-sm btn-voltar-tg"><i class="fas fa-arrow-left"></i> <span>Voltar ao Total Gest</span></a>' + meta.botao;
+            }
+            if (nome === 'dashboard') renderizarDashboardAssist();
+            else if (nome === 'assistencias') renderizarAssistencias();
+        }
+        function _preencherDatalistClientes() { /* compatibilidade — não usado no Assist */ }
+
+        // ===== CRM — Leads (Fase 1: pipeline + conversão automática em cliente) =====
+        const LEAD_ESTADOS = [
+            { key: 'novo', label: 'Novo Lead', cor: '#64748b' },
+            { key: 'contactado', label: 'Contactado', cor: '#0ea5e9' },
+            { key: 'qualificado', label: 'Qualificado', cor: '#6366f1' },
+            { key: 'visita_agendada', label: 'Visita Agendada', cor: '#8b5cf6' },
+            { key: 'visita_realizada', label: 'Visita Realizada', cor: '#a855f7' },
+            { key: 'proposta_enviada', label: 'Proposta Enviada', cor: '#d97706' },
+            { key: 'negociacao', label: 'Negociação', cor: '#f59e0b' },
+            { key: 'verbalmente_aceite', label: 'Verbalmente Aceite', cor: '#0f766e' },
+            { key: 'ganho', label: 'Ganho', cor: '#16a34a' },
+        ];
+        // ===================== Arranque =====================
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                const { data } = await supa.auth.getSession();
+                if (!data || !data.session || !data.session.user) {
+                    document.getElementById('loginNecessario').style.display = 'block';
+                    return;
+                }
+                const user = data.session.user;
+                const { tenantId, superAdmin } = await _obterTenantDoUser(user.id);
+                if (!tenantId && !superAdmin) {
+                    document.getElementById('loginNecessario').style.display = 'block';
+                    return;
+                }
+                // guarda o "papel"/adminId de forma simples, suficiente para o CRM
+                const { data: perfil } = await supa.from('perfis').select('*').eq('id', user.id).single();
+                usuarioLogado = {
+                    id: superAdmin ? user.id : (perfil.papel === 'admin' ? perfil.registo_id : perfil.registo_id),
+                    role: superAdmin ? 'superadmin' : (perfil.papel === 'admin' ? 'admin' : (perfil.papel === 'funcionario' ? 'funcionario' : perfil.papel)),
+                    adminId: superAdmin ? null : (perfil.papel === 'admin' ? perfil.registo_id : perfil.admin_id),
+                };
+                // o CRM só faz sentido para quem gere a empresa (admin/sub-admin) — os restantes
+                // podem consultar, mas a criação/edição fica pensada para esse perfil.
+                await carregarDadosCRM(tenantId, superAdmin);
+                // Verifica aqui mesmo (não só no menu da app principal) se a empresa tem o
+                // add-on Total Gest Assist realmente ativo — o menu só esconde o cartão, o que
+                // não impede ninguém de abrir este ficheiro diretamente pelo link.
+                if (!superAdmin) {
+                    const adminRec = (dados.administradores || []).find(a => a.id === tenantId);
+                    // O Assist vem sempre incluído na licença de CRM Comercial (mesma subscrição) —
+                    // por isso conta como ativo também quando o CRM estiver ativo, mesmo em contas
+                    // que só têm o campo assistPlano por preencher (mesma regra que já existe no
+                    // index.html, replicada aqui porque este ficheiro corre à parte).
+                    const crmAtivo = !!(adminRec?.crmPlano && adminRec?.crmExpiracao && adminRec.crmExpiracao > Date.now());
+                    const assistAtivo = crmAtivo || !!(adminRec?.assistPlano && adminRec?.assistExpiracao && adminRec.assistExpiracao > Date.now());
+                    if (!assistAtivo) {
+                        const loginDiv = document.getElementById('loginNecessario');
+                        loginDiv.innerHTML = `
+                            <i class="fas fa-lock" style="font-size:2rem;margin-bottom:12px;color:var(--text-soft);"></i>
+                            <p>O add-on <strong>Total Gest Assist</strong> não está ativo para a tua empresa.</p>
+                            <p>Fala com o Super Admin para o ativares.</p>
+                            <p><a href="index.html" style="color:var(--orange);font-weight:700;text-decoration:none;">Voltar à aplicação principal →</a></p>`;
+                        loginDiv.style.display = 'block';
+                        return;
+                    }
+                }
+                usuarioLogado.nome = obterNomeFuncionario(usuarioLogado.id) || 'Eu';
+                document.getElementById('crmApp').style.display = 'block';
+                renderizarTudo();
+            } catch (e) {
+                console.error('Arranque do CRM falhou:', e);
+                document.getElementById('loginNecessario').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

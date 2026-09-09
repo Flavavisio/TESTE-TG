@@ -1,0 +1,35 @@
+{
+  "id": "/",
+  "name": "Total Gest",
+  "short_name": "Total Gest",
+  "description": "Gestão de equipas, obras, ponto e ordens de serviço para empresas de instalação e manutenção técnica.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#152a52",
+  "theme_color": "#152a52",
+  "lang": "pt-PT",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Registo de Ponto",
+      "short_name": "Ponto",
+      "description": "Picar entrada ou saída",
+      "url": "/index.html?atalho=ponto",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Nova Ordem de Serviço",
+      "short_name": "Nova OS",
+      "description": "Criar uma nova ordem de serviço",
+      "url": "/index.html?atalho=nova-os",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
