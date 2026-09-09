@@ -32621,7 +32621,6 @@ function tgCalcularPoupanca(){
 document.addEventListener('DOMContentLoaded', function(){ if (document.getElementById('tgc_func')) tgCalcularPoupanca(); });
 if (document.getElementById('tgc_func')) tgCalcularPoupanca();
 
-<script>
 /* === TG ASSISTENTE — apenas depois do login === */
 (function instalarTGAssistente() {
     if (window.__TG_ASSISTENTE_INSTALADO__) return;
@@ -33300,7 +33299,6 @@ if (document.getElementById('tgc_func')) tgCalcularPoupanca();
         setTimeout(sincronizarTGAssistente, 0);
     }
 })();
-</script>
 function atualizarLanding(){
     var autenticado=(typeof usuarioLogado!=='undefined'&&!!usuarioLogado);
     var l=document.getElementById('tg-landing');
