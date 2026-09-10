@@ -31919,6 +31919,7 @@ window._relPrefill = function(msg){
             #tgAssistenteRoot{position:fixed;right:20px;bottom:18px;z-index:99990;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#102a4e}
             #tgAssistenteRoot *{box-sizing:border-box}
             .tg-ass-launcher{position:relative;width:112px;height:142px;border:0;background:transparent;padding:0;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 13px 15px rgba(2,28,62,.23));animation:tgMascoteFlutuar 3.1s ease-in-out infinite;transform-origin:50% 100%}
+            .tg-ass-versao{position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:3;background:#0c4f8e;color:#fff;border:1px solid rgba(255,255,255,.9);border-radius:999px;padding:3px 8px;font-size:11px;line-height:1;font-weight:800;letter-spacing:.2px;box-shadow:0 4px 10px rgba(2,32,72,.18);white-space:nowrap;pointer-events:none}
             .tg-ass-launcher:hover{animation-play-state:paused;transform:translateY(-4px) scale(1.035)}
             .tg-ass-launcher .tg-mascote-svg,.tg-ass-launcher .tg-mascote-img{width:108px;height:138px;display:block;object-fit:contain}
             .tg-mascote-svg svg{width:100%;height:100%;display:block}
@@ -32236,7 +32237,7 @@ if (typeof tgSmartV3Executar === 'function' && tgSmartV3Executar(q)) {
                 </form>
                 <div class="tg-ass-footnote">O TG ajuda-o a navegar na Total Gest.</div>
             </div>
-            <button type="button" class="tg-ass-launcher" id="tgAssistenteLauncher" aria-label="Abrir TG, assistente da Total Gest"><span class="tg-ass-ponto"></span></button>
+            <button type="button" class="tg-ass-launcher" id="tgAssistenteLauncher" aria-label="Abrir TG, assistente da Total Gest"><span class="tg-ass-versao">v6.1</span><span class="tg-ass-ponto"></span></button>
         `;
         document.body.appendChild(rootTG);
         janelaTG = document.getElementById('tgAssistenteJanela');
