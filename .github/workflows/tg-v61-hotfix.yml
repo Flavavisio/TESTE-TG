@@ -1,0 +1,107 @@
+name: TG v6.1 hotfix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/tg-v61-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar Dashboard Central e versão da mascote
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app-principal.js')
+          s = p.read_text(encoding='utf-8')
+          marker = '/* TG V6.1 DASHBOARD CENTRAL HOTFIX */'
+          if marker not in s:
+              patch = r'''
+
+/* TG V6.1 DASHBOARD CENTRAL HOTFIX */
+(function tgV61Hotfix(){
+    if (window.__TG_V61_HOTFIX__) return;
+    window.__TG_V61_HOTFIX__ = true;
+
+    function tgV61RolePermitida(){
+        try { return usuarioLogado && (usuarioLogado.role === 'admin' || usuarioLogado.role === 'subadmin'); }
+        catch(e) { return false; }
+    }
+
+    function tgV61GarantirDashboardCentral(){
+        if (!tgV61RolePermitida()) return;
+        if (document.querySelector('[data-secao="dashboard-central"]')) return;
+
+        const inicio = document.querySelector('.tg-nav-item[data-secao="__inicio"], [data-secao="__inicio"]');
+        if (!inicio || !inicio.parentNode) return;
+
+        const item = document.createElement('a');
+        item.className = inicio.className || 'tg-nav-item';
+        item.dataset.secao = 'dashboard-central';
+        item.href = 'javascript:void(0)';
+        item.innerHTML = '<i class="fas fa-chart-line"></i><span>Dashboard Central</span>';
+        item.addEventListener('click', function(ev){
+            ev.preventDefault();
+            try {
+                if (typeof abrirSecao === 'function') {
+                    abrirSecao('dashboard-central');
+                    setTimeout(function(){
+                        try { if (typeof renderizarDashboardCentralSecao === 'function') renderizarDashboardCentralSecao(); } catch(e) {}
+                    }, 60);
+                }
+            } catch(e) { console.error('Dashboard Central:', e); }
+        });
+        inicio.insertAdjacentElement('afterend', item);
+    }
+
+    function tgV61GarantirVersaoMascote(){
+        const launcher = document.getElementById('tgAssistenteLauncher');
+        if (!launcher || launcher.querySelector('.tg-ass-versao')) return;
+
+        if (!document.getElementById('tgV61VersionStyle')) {
+            const st = document.createElement('style');
+            st.id = 'tgV61VersionStyle';
+            st.textContent = '.tg-ass-launcher{position:relative}.tg-ass-versao{position:absolute;top:-12px;left:50%;transform:translateX(-50%);z-index:5;background:#0c4f8e;color:#fff;border:1px solid rgba(255,255,255,.9);border-radius:999px;padding:3px 8px;font-size:11px;line-height:1;font-weight:800;letter-spacing:.2px;box-shadow:0 4px 10px rgba(2,32,72,.18);white-space:nowrap;pointer-events:none}';
+            document.head.appendChild(st);
+        }
+        const v = document.createElement('span');
+        v.className = 'tg-ass-versao';
+        v.textContent = 'v6.1';
+        launcher.prepend(v);
+    }
+
+    function tgV61Aplicar(){
+        tgV61GarantirDashboardCentral();
+        tgV61GarantirVersaoMascote();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tgV61Aplicar);
+    else tgV61Aplicar();
+
+    const obs = new MutationObserver(tgV61Aplicar);
+    obs.observe(document.documentElement, {childList:true, subtree:true});
+    setInterval(tgV61Aplicar, 1500);
+})();
+'''
+              p.write_text(s + patch, encoding='utf-8')
+          PY
+          node --check app-principal.js
+      - name: Commit
+        shell: bash
+        run: |
+          if git diff --quiet -- app-principal.js; then
+            echo 'Sem alterações.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app-principal.js
+          git commit -m 'TG v6.1: repor Dashboard Central e versão na mascote'
+          git push
