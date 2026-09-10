@@ -31648,9 +31648,9 @@ window._relPrefill = function(msg){
         // para não perder preenchimento por engano (ex: folha de obra, formulários longos).
 
 /* =====================================================================
-   TG ASSISTENTE TOTAL GEST
-   Implementado sobre o backup enviado, sem alterar o código existente.
-   Só é montado quando usuarioLogado existe (login concluído).
+   TG ASSISTENTE — adicionado à versão original enviada de manhã
+   A lógica existente da APP permanece intacta.
+   O assistente só aparece após login (usuarioLogado ativo).
 ===================================================================== */
 (function instalarTGAssistente() {
     if (window.__TG_ASSISTENTE_INSTALADO__) return;
@@ -32141,6 +32141,22 @@ window._relPrefill = function(msg){
         setTimeout(() => {
             const nq = normalizarTG(q);
 
+            // TG Smart v3: tenta primeiro interpretar ações que alteram/preparam dados.
+            // Alterações reais pedem confirmação no chat antes de avançar.
+            if (typeof tgSmartV62Executar === 'function' && tgSmartV62Executar(q)) {
+    return;
+}
+if (typeof tgSmartV3Executar === 'function' && tgSmartV3Executar(q)) {
+                return;
+            }
+
+            const respostaSmart = window.TGSmart?.responder(q);
+            if (respostaSmart) {
+                adicionarMensagemTG(respostaSmart, 'bot');
+                _tgDefinirEstado('sucesso', 1700);
+                return;
+            }
+
             if (/^(ola|bom dia|boa tarde|boa noite|oi|hey)\b/.test(nq)) {
                 adicionarMensagemHtmlTG('Olá! 👋 Diga-me o que pretende fazer na <span class="tg-laranja">Total Gest</span> e eu levo-o diretamente para a área certa.');
                 _tgDefinirEstado('ola', 1500);
@@ -32151,7 +32167,7 @@ window._relPrefill = function(msg){
             if (/ajuda|o que podes|que podes|como funciona/.test(nq)) {
                 adicionarMensagemTG('Posso ajudar a encontrar áreas e ações dentro da plataforma. Por exemplo: criar uma OS, ver clientes, consultar manutenções, stock, equipa, ponto, frota ou relatórios.', 'bot');
                 _tgDefinirEstado('sugestao', 1900);
-                mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Pode começar por aqui');
+                mostrarOpcoesTG((window.TGSmart?.acoesContexto?.() || sugestoesContextoTG().slice(0,4)), 'Pode começar por aqui');
                 return;
             }
 
@@ -32188,7 +32204,7 @@ window._relPrefill = function(msg){
             corpoTG.dataset.iniciado = '1';
             adicionarMensagemHtmlTG(`<b>${TG_CONFIG.saudacao}</b><br>${TG_CONFIG.pergunta}`);
             mostrarChipsTG();
-            mostrarOpcoesTG(sugestoesContextoTG().slice(0,4), 'Atalhos recomendados');
+            mostrarOpcoesTG((window.TGSmart?.acoesContexto?.() || sugestoesContextoTG().slice(0,4)), 'Atalhos recomendados para esta área');
         }
     }
 
@@ -32305,11 +32321,1662 @@ window._relPrefill = function(msg){
         configurarMascote: (url) => { TG_CONFIG.mascoteUrl = url || TG_CONFIG.mascoteUrl; }
     };
 
+    /* TG SMART v1 — contexto operacional, sem API externa */
+    function tgSmartNorm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
+    function tgSmartSecao(){try{if(typeof secaoAtual!=='undefined'&&secaoAtual)return String(secaoAtual);}catch(e){} const a=document.querySelector('.tg-nav-item.active[data-secao],.nav-item.active[data-secao],[data-secao].active');return a?.dataset?.secao||'inicio';}
+    function tgSmartArr(n){try{return typeof dados!=='undefined'&&Array.isArray(dados?.[n])?dados[n]:[];}catch(e){return [];}}
+    function tgSmartDate(v){if(!v)return null;const d=new Date(v);return isNaN(d)?null:d;}
+    function tgSmartData(o){for(const k of ['data','dataAgendada','data_agendada','dataPrevista','data_prevista','dataInicio','data_inicio','inicio','start']){const d=tgSmartDate(o?.[k]);if(d)return d;}return null;}
+    function tgSmartEstado(o){return tgSmartNorm(o?.estado||o?.status||o?.situacao||o?.fase);}
+    function tgSmartResumo(){const os=tgSmartArr('ordensServico').length?tgSmartArr('ordensServico'):tgSmartArr('servicos'), contratos=tgSmartArr('contratos'), clientes=tgSmartArr('clientes'), funcs=tgSmartArr('funcionarios').length?tgSmartArr('funcionarios'):tgSmartArr('employees'); const h=new Date();h.setHours(0,0,0,0); const hoje=os.filter(o=>{const d=tgSmartData(o);return d&&d.toDateString()===new Date().toDateString();}); const atras=os.filter(o=>{const e=tgSmartEstado(o);if(/conclu|fechad|finaliz|cancel|faturad/.test(e))return false;const d=tgSmartData(o);if(!d)return false;const x=new Date(d);x.setHours(0,0,0,0);return x<h;}); const semTecnico=os.filter(o=>!(o.funcionarioId||o.funcionario_id||o.tecnicoId||o.tecnico_id||o.responsavelId||o.responsavel_id||(Array.isArray(o.funcionariosIds)&&o.funcionariosIds.length))); const limite=new Date();limite.setDate(limite.getDate()+30); const vencer=contratos.filter(c=>{const d=tgSmartDate(c.dataFim||c.data_fim||c.validade||c.dataValidade||c.data_validade);return d&&d>=new Date()&&d<=limite;}); return {os,clientes,contratos,funcs,hoje,atras,semTecnico,vencer};}
+    function tgSmartResponder(q){q=tgSmartNorm(q);const r=tgSmartResumo(); if((q.includes('os')||q.includes('ordens de servico'))&&q.includes('atras'))return `Encontrei ${r.atras.length} OS atrasada${r.atras.length===1?'':'s'}.`; if((q.includes('os')||q.includes('ordens de servico'))&&q.includes('hoje'))return `Tens ${r.hoje.length} OS para hoje.`; if((q.includes('os')||q.includes('ordens de servico'))&&(q.includes('sem tecnico')||q.includes('sem atrib')))return `Encontrei ${r.semTecnico.length} OS sem técnico atribuído.`; if(q.includes('contrat')&&(q.includes('venc')||q.includes('30 dias')||q.includes('expir')))return `Existem ${r.vencer.length} contratos a vencer nos próximos 30 dias.`; if(q.includes('quant')&&q.includes('cliente'))return `Tens ${r.clientes.length} clientes carregados.`; if(q.includes('quant')&&(q.includes('funcionario')||q.includes('tecnico')))return `Tens ${r.funcs.length} colaboradores carregados.`; if(q.includes('resumo')||q.includes('estado da operacao'))return `Resumo: ${r.hoje.length} OS hoje, ${r.atras.length} atrasadas, ${r.semTecnico.length} sem técnico e ${r.vencer.length} contratos a vencer em 30 dias.`; if(q.includes('o que posso fazer'))return `Estás em ${tgSmartSecao()}. Posso ajudar-te a navegar, consultar OS, clientes, contratos e informação operacional desta área.`; return null;}
+
+    function tgSmartRegistoAtual(){
+        try {
+            if (!idEditando || !entidadeAtual) return null;
+            const mapa = {
+                servico:'servicos', cliente:'clientes', contrato:'contratos',
+                funcionario:'funcionarios', obra:'obras', veiculo:'frota',
+                requisicao:'requisicoes', folha:'folhas'
+            };
+            const arr = tgSmartArr(mapa[entidadeAtual] || entidadeAtual);
+            const reg = arr.find(x => String(x.id) === String(idEditando));
+            return reg ? {entidade:entidadeAtual, registo:reg} : null;
+        } catch(e) { return null; }
+    }
+
+    function tgSmartNomeCliente(id){
+        try {
+            if (typeof obterNomeCliente === 'function') return obterNomeCliente(id) || '';
+        } catch(e){}
+        return tgSmartArr('clientes').find(c=>String(c.id)===String(id))?.nome || '';
+    }
+
+    function tgSmartNomeFuncionario(id){
+        try {
+            if (typeof obterNomeFuncionario === 'function') return obterNomeFuncionario(id) || '';
+        } catch(e){}
+        return tgSmartArr('funcionarios').find(f=>String(f.id)===String(id))?.nome || '';
+    }
+
+    function tgSmartResponderContextual(pergunta){
+        const q=tgSmartNorm(pergunta);
+        const atual=tgSmartRegistoAtual();
+
+        if (atual?.entidade === 'servico') {
+            const os=atual.registo;
+            if ((q.includes('qual')||q.includes('quem')||q.includes('mostra')) && q.includes('cliente')) {
+                return `O cliente desta OS é ${tgSmartNomeCliente(os.clienteId) || 'não identificado'}.`;
+            }
+            if ((q.includes('qual')||q.includes('quem')||q.includes('mostra')) &&
+                (q.includes('tecnico')||q.includes('funcionario')||q.includes('responsavel'))) {
+                const ids = (Array.isArray(os.funcionariosIds)&&os.funcionariosIds.length)
+                    ? os.funcionariosIds : [os.funcionarioId].filter(Boolean);
+                const nomes=ids.map(tgSmartNomeFuncionario).filter(Boolean);
+                return nomes.length ? `Técnico${nomes.length>1?'s':''} desta OS: ${nomes.join(', ')}.`
+                                    : 'Esta OS ainda não tem técnico atribuído.';
+            }
+            if (q.includes('estado') || q.includes('status')) {
+                return `O estado desta OS é "${os.status || os.estado || 'não definido'}".`;
+            }
+            if (q.includes('quando') || q.includes('data') || q.includes('hora')) {
+                return `Esta OS está marcada para ${os.data || 'data não definida'}${os.hora ? ` às ${os.hora}` : ''}.`;
+            }
+            if (q.includes('descricao') || q.includes('trabalho')) {
+                return os.descricao ? `Descrição da OS: ${os.descricao}` : 'Esta OS não tem descrição preenchida.';
+            }
+            if (q.includes('abrir') && q.includes('cliente')) {
+                const clienteId=os.clienteId;
+                if (!clienteId) return 'Esta OS não tem cliente associado.';
+                setTimeout(()=>{ try{ abrirModal('cliente', clienteId); }catch(e){} },250);
+                return `Vou abrir a ficha de ${tgSmartNomeCliente(clienteId) || 'cliente'}.`;
+            }
+        }
+
+        if (atual?.entidade === 'cliente') {
+            const c=atual.registo;
+            if (q.includes('nif')) return c.nif ? `O NIF deste cliente é ${c.nif}.` : 'Este cliente não tem NIF preenchido.';
+            if (q.includes('email') || q.includes('e-mail')) return c.email ? `O email deste cliente é ${c.email}.` : 'Este cliente não tem email preenchido.';
+            if (q.includes('telefone') || q.includes('telemovel') || q.includes('contacto')) {
+                const tel=c.telefone||c.telemovel||c.phone;
+                return tel ? `O contacto deste cliente é ${tel}.` : 'Este cliente não tem telefone preenchido.';
+            }
+            if (q.includes('quant') && (q.includes('os')||q.includes('ordens'))) {
+                const n=tgSmartArr('servicos').filter(s=>String(s.clienteId)===String(c.id)).length;
+                return `Este cliente tem ${n} OS registada${n===1?'':'s'}.`;
+            }
+            if (q.includes('quant') && q.includes('contrat')) {
+                const n=tgSmartArr('contratos').filter(x=>String(x.clienteId)===String(c.id)).length;
+                return `Este cliente tem ${n} contrato${n===1?'':'s'} registado${n===1?'':'s'}.`;
+            }
+        }
+        return null;
+    }
+
+    const _tgSmartResponderBase = tgSmartResponder;
+    tgSmartResponder = function(q){
+        return tgSmartResponderContextual(q) || _tgSmartResponderBase(q);
+    };
+
+    function tgSmartAcoesContexto(){
+        const atual=tgSmartRegistoAtual();
+        const sec=tgSmartSecao();
+        if (atual?.entidade==='servico') return [
+            {titulo:'Quem é o técnico?',descricao:'Ver técnico atribuído',icone:'fa-user-gear',executar:()=>processarPerguntaTG('Quem é o técnico desta OS?')},
+            {titulo:'Ver cliente',descricao:'Abrir cliente desta OS',icone:'fa-user',executar:()=>processarPerguntaTG('Abrir cliente desta OS')},
+            {titulo:'Estado da OS',descricao:'Consultar estado atual',icone:'fa-circle-info',executar:()=>processarPerguntaTG('Qual é o estado desta OS?')},
+            {titulo:'Data e hora',descricao:'Consultar agendamento',icone:'fa-calendar',executar:()=>processarPerguntaTG('Qual a data e hora desta OS?')}
+        ];
+        if (atual?.entidade==='cliente') return [
+            {titulo:'OS do cliente',descricao:'Contar ordens de serviço',icone:'fa-clipboard-list',executar:()=>processarPerguntaTG('Quantas OS tem este cliente?')},
+            {titulo:'Contratos',descricao:'Contar contratos do cliente',icone:'fa-file-contract',executar:()=>processarPerguntaTG('Quantos contratos tem este cliente?')},
+            {titulo:'Contacto',descricao:'Ver telefone',icone:'fa-phone',executar:()=>processarPerguntaTG('Qual o contacto deste cliente?')},
+            {titulo:'NIF',descricao:'Consultar NIF',icone:'fa-id-card',executar:()=>processarPerguntaTG('Qual o NIF deste cliente?')}
+        ];
+        if (/servic|ordem/.test(tgSmartNorm(sec))) return [
+            acaoPorIdTG('nova-os'),
+            {titulo:'OS de hoje',descricao:'Consultar agenda de hoje',icone:'fa-calendar-day',executar:()=>processarPerguntaTG('Quantas OS tenho hoje?')},
+            {titulo:'OS atrasadas',descricao:'Ver situação operacional',icone:'fa-clock',executar:()=>processarPerguntaTG('Quantas OS estão atrasadas?')}
+        ].filter(Boolean);
+        if (/client/.test(tgSmartNorm(sec))) return [acaoPorIdTG('clientes'), acaoPorIdTG('novo-cliente'), acaoPorIdTG('contratos')].filter(Boolean);
+        if (/contrat/.test(tgSmartNorm(sec))) return [
+            acaoPorIdTG('contratos'),
+            {titulo:'A vencer',descricao:'Próximos 30 dias',icone:'fa-triangle-exclamation',executar:()=>processarPerguntaTG('Contratos a vencer nos próximos 30 dias')}
+        ].filter(Boolean);
+        return sugestoesContextoTG().slice(0,4);
+    }
+
+
+    /* ================================================================
+       TG SMART v3 — ações operacionais com confirmação
+       Sem API externa. As ações destrutivas/alterações só avançam
+       após confirmação explícita no próprio chat do TG.
+    ================================================================= */
+
+    function tgSmartV3HojeISO(offsetDias=0){
+        const d=new Date();
+        d.setDate(d.getDate()+offsetDias);
+        const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dia=String(d.getDate()).padStart(2,'0');
+        return `${y}-${m}-${dia}`;
+    }
+
+    function tgSmartV3DataDaFrase(q){
+        const n=tgSmartNorm(q);
+        if (/\bamanha\b/.test(n)) return tgSmartV3HojeISO(1);
+        if (/\bhoje\b/.test(n)) return tgSmartV3HojeISO(0);
+        if (/\bdepois de amanha\b/.test(n)) return tgSmartV3HojeISO(2);
+
+        let m=n.match(/\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\b/);
+        if (m){
+            let ano=m[3] ? Number(m[3]) : new Date().getFullYear();
+            if (ano<100) ano+=2000;
+            return `${ano}-${String(Number(m[2])).padStart(2,'0')}-${String(Number(m[1])).padStart(2,'0')}`;
+        }
+        return null;
+    }
+
+    function tgSmartV3HoraDaFrase(q){
+        const n=tgSmartNorm(q);
+        let m=n.match(/\b(?:as|às)?\s*(\d{1,2})(?::|h)(\d{2})\b/);
+        if (m) return `${String(Number(m[1])).padStart(2,'0')}:${m[2]}`;
+        m=n.match(/\b(?:as|às)\s*(\d{1,2})\b/);
+        if (m) return `${String(Number(m[1])).padStart(2,'0')}:00`;
+        return null;
+    }
+
+    function tgSmartV3ServicoAtual(){
+        const atual=tgSmartRegistoAtual();
+        if (atual?.entidade==='servico') return atual.registo;
+        return null;
+    }
+
+    function tgSmartV3Confirmar(titulo, descricao, executar){
+        adicionarMensagemTG(descricao, 'bot');
+        _tgDefinirEstado('sugestao', 1600);
+        mostrarOpcoesTG([
+            {
+                titulo:'Confirmar',
+                descricao:titulo,
+                icone:'fa-circle-check',
+                executar: async () => {
+                    try {
+                        _tgDefinirEstado('pensar');
+                        await executar();
+                        _tgEstadoConcluido(1800);
+                    } catch(e) {
+                        console.error('TG Smart v3:', e);
+                        adicionarMensagemTG('Não consegui concluir a ação: ' + (e?.message || 'erro inesperado'), 'bot');
+                        _tgDefinirEstado('alerta', 1900);
+                    }
+                }
+            },
+            {
+                titulo:'Cancelar',
+                descricao:'Não alterar nada',
+                icone:'fa-xmark',
+                executar:() => {
+                    adicionarMensagemTG('Ação cancelada. Não alterei nada.', 'bot');
+                    _tgDefinirEstado('chat', 900);
+                }
+            }
+        ], 'Confirmar ação');
+        return true;
+    }
+
+    function tgSmartV3Pessoas(){
+        let pessoas=[];
+        try {
+            if (typeof _pessoasTenantAg === 'function') pessoas=_pessoasTenantAg() || [];
+        } catch(e){}
+        if (!pessoas.length) pessoas=[...tgSmartArr('funcionarios'), ...tgSmartArr('encarregados')];
+        return pessoas;
+    }
+
+    function tgSmartV3EncontrarPessoa(frase){
+        const n=tgSmartNorm(frase);
+        const pessoas=tgSmartV3Pessoas();
+        const candidatos=pessoas
+            .map(p=>({p,n:tgSmartNorm(p.nome||'')}))
+            .filter(x=>x.n && (n.includes(x.n) || x.n.split(/\s+/).some(parte=>parte.length>=3 && n.includes(parte))));
+        candidatos.sort((a,b)=>b.n.length-a.n.length);
+        return candidatos[0]?.p || null;
+    }
+
+    function tgSmartV3EncontrarCliente(frase){
+        const n=tgSmartNorm(frase);
+        const clientes=tgSmartArr('clientes');
+        const candidatos=clientes
+            .map(c=>({c,n:tgSmartNorm(c.nome||c.empresa||'')}))
+            .filter(x=>x.n && n.includes(x.n));
+        candidatos.sort((a,b)=>b.n.length-a.n.length);
+        return candidatos[0]?.c || null;
+    }
+
+    async function tgSmartV3AtribuirPessoa(os, pessoa, substituir=false){
+        if (!os || !pessoa) throw new Error('OS ou técnico não encontrado.');
+        if (typeof abrirEditarAtribuidosOS !== 'function') throw new Error('Editor de equipa da OS indisponível.');
+
+        abrirEditarAtribuidosOS(os.id);
+        await new Promise(r=>setTimeout(r,120));
+
+        const checks=[...document.querySelectorAll('.ag-edit-func-chk')];
+        const alvo=checks.find(c=>String(c.value)===String(pessoa.id));
+        if (!alvo) throw new Error('O técnico não está disponível para atribuição nesta OS.');
+
+        if (substituir) checks.forEach(c=>c.checked=false);
+        alvo.checked=true;
+
+        const form=document.getElementById('modalGenericoForm');
+        if (!form) throw new Error('Formulário de atribuição não encontrado.');
+        form.requestSubmit();
+        adicionarMensagemTG(`${pessoa.nome} foi ${substituir?'definido como responsável':'adicionado à equipa'} da OS.`, 'bot');
+    }
+
+    function tgSmartV3CriarOSRascunho(frase){
+        if (typeof abrirModal !== 'function') return false;
+        const cliente=tgSmartV3EncontrarCliente(frase);
+        const pessoa=tgSmartV3EncontrarPessoa(frase);
+        const data=tgSmartV3DataDaFrase(frase);
+        const hora=tgSmartV3HoraDaFrase(frase);
+
+        abrirModal('servico', null);
+
+        setTimeout(()=>{
+            try {
+                if (cliente){
+                    const h=document.getElementById('s_cliente');
+                    const busca=document.getElementById('s_cliente_busca');
+                    if (h) h.value=cliente.id;
+                    if (busca) busca.value=cliente.nome || cliente.empresa || '';
+                    try { if (typeof _osPreencherMorada==='function') _osPreencherMorada(); } catch(e){}
+                }
+                if (data && document.getElementById('s_data')) document.getElementById('s_data').value=data;
+                if (hora && document.getElementById('s_hora')) document.getElementById('s_hora').value=hora;
+
+                if (pessoa){
+                    const checks=[...document.querySelectorAll('.s-func-check')];
+                    const chk=checks.find(c=>String(c.value)===String(pessoa.id));
+                    if (chk){
+                        chk.checked=true;
+                        try { if (typeof _sAtualizarFuncPrincipal==='function') _sAtualizarFuncPrincipal(); } catch(e){}
+                    }
+                }
+
+                const desc=document.getElementById('s_descricao');
+                if (desc && !desc.value.trim()){
+                    let limpa=String(frase);
+                    limpa=limpa.replace(/cria(r)?\s+(uma\s+)?(nova\s+)?os/ig,'').trim();
+                    if (cliente?.nome) limpa=limpa.replace(new RegExp(cliente.nome.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig'),'').trim();
+                    if (limpa.length>=3) desc.value=limpa.slice(0,500);
+                }
+            } catch(e){ console.error('TG pré-preencher OS:',e); }
+        },140);
+
+        adicionarMensagemTG(
+            `Abri uma nova OS${cliente?` para ${cliente.nome}`:''}${data?` em ${data}`:''}${hora?` às ${hora}`:''}${pessoa?` para ${pessoa.nome}`:''}. Revê os dados e carrega em Guardar.`,
+            'bot'
+        );
+        _tgDefinirEstado('sucesso',1700);
+        return true;
+    }
+
+    function tgSmartV3Executar(frase){
+        const q=tgSmartNorm(frase);
+        const os=tgSmartV3ServicoAtual();
+
+        // Criar OS em linguagem natural — abre e pré-preenche, mas não grava sem revisão humana.
+        if (/\b(cria|criar|nova)\b/.test(q) && /\b(os|ordem de servico)\b/.test(q)){
+            return tgSmartV3CriarOSRascunho(frase);
+        }
+
+        if (!os) return false;
+
+        // Alterar estado
+        if (/(muda|altera|marca|coloca|passa).*(estado|status)|\bconclui(r)?\b/.test(q)){
+            let novo=null;
+            if (/conclu/.test(q)) novo='concluído';
+            else if (/stand\s*by|standby/.test(q)) novo='stand by';
+            else if (/andamento|curso/.test(q)) novo='em andamento';
+            else if (/pendente/.test(q)) novo='pendente';
+
+            if (novo){
+                return tgSmartV3Confirmar(
+                    `Alterar estado para "${novo}"`,
+                    `Vou alterar o estado desta OS para "${novo}". Queres confirmar?`,
+                    async ()=>{
+                        if (typeof alterarStatusOS!=='function') throw new Error('Função de estado indisponível.');
+                        alterarStatusOS(os.id, novo);
+                        adicionarMensagemTG(`Estado da OS alterado para "${novo}".`, 'bot');
+                    }
+                );
+            }
+        }
+
+        // Alterar data/hora
+        if (/(muda|altera|agenda|reagenda|marca).*(data|dia|hora|amanha|hoje|\d{1,2}[\/\-]\d{1,2})/.test(q)){
+            const data=tgSmartV3DataDaFrase(frase);
+            const hora=tgSmartV3HoraDaFrase(frase);
+            if (data || hora){
+                const partes=[data?`data para ${data}`:'',hora?`hora para ${hora}`:''].filter(Boolean).join(' e ');
+                return tgSmartV3Confirmar(
+                    `Alterar ${partes}`,
+                    `Vou alterar a ${partes} nesta OS. Confirmas?`,
+                    async ()=>{
+                        if (data){
+                            if (typeof mudarDataOS!=='function') throw new Error('Função de data indisponível.');
+                            mudarDataOS(os.id,data);
+                        }
+                        if (hora){
+                            if (typeof mudarHoraOS!=='function') throw new Error('Função de hora indisponível.');
+                            mudarHoraOS(os.id,hora);
+                        }
+                        adicionarMensagemTG(`OS atualizada: ${partes}.`, 'bot');
+                    }
+                );
+            }
+        }
+
+        // Atribuição de técnico
+        if (/(atribui|adiciona|mete|coloca|responsavel|tecnico)/.test(q)){
+            const pessoa=tgSmartV3EncontrarPessoa(frase);
+            if (pessoa){
+                const substituir=/(substitui|troca|fica so|apenas)/.test(q);
+                return tgSmartV3Confirmar(
+                    `${substituir?'Definir':'Adicionar'} ${pessoa.nome}`,
+                    `${substituir?'Vou substituir a equipa atual e deixar':'Vou adicionar'} ${pessoa.nome} nesta OS. Confirmas?`,
+                    ()=>tgSmartV3AtribuirPessoa(os,pessoa,substituir)
+                );
+            }
+        }
+
+        return false;
+    }
+
+
+    /* ================================================================
+       TG SMART v4 — interpretação natural mais avançada
+       - dias da semana
+       - manhã / tarde / noite
+       - múltiplos técnicos
+       - duração
+       - melhor identificação de cliente
+       - resumo estruturado antes de abrir/preencher a OS
+       Sem API externa.
+    ================================================================= */
+
+    function tgSmartV4ProximoDiaSemana(indiceDia){
+        const hoje=new Date();
+        const atual=hoje.getDay();
+        let delta=(indiceDia-atual+7)%7;
+        if (delta===0) delta=7; // "sexta" = próxima sexta, não hoje
+        const d=new Date(hoje);
+        d.setDate(d.getDate()+delta);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function tgSmartV4DataNatural(frase){
+        const q=tgSmartNorm(frase);
+
+        const base=tgSmartV3DataDaFrase(frase);
+        if (base) return base;
+
+        const dias = [
+            ['domingo',0], ['segunda',1], ['segunda feira',1],
+            ['terca',2], ['terça',2], ['terca feira',2], ['terça feira',2],
+            ['quarta',3], ['quarta feira',3],
+            ['quinta',4], ['quinta feira',4],
+            ['sexta',5], ['sexta feira',5],
+            ['sabado',6], ['sábado',6]
+        ];
+        for (const [nome,idx] of dias){
+            if (q.includes(tgSmartNorm(nome))) return tgSmartV4ProximoDiaSemana(idx);
+        }
+
+        // "dia 15", "no dia 15"
+        let m=q.match(/\b(?:dia\s+)?(\d{1,2})\b/);
+        if (m && /\bdia\s+\d{1,2}\b/.test(q)){
+            const agora=new Date();
+            let ano=agora.getFullYear(), mes=agora.getMonth();
+            let d=new Date(ano,mes,Number(m[1]));
+            if (d < new Date(agora.getFullYear(),agora.getMonth(),agora.getDate())) {
+                mes += 1;
+                d=new Date(ano,mes,Number(m[1]));
+            }
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        return null;
+    }
+
+    function tgSmartV4HoraNatural(frase){
+        const explicita=tgSmartV3HoraDaFrase(frase);
+        if (explicita) return explicita;
+
+        const q=tgSmartNorm(frase);
+        if (/\bde manha\b|\bmanha\b/.test(q)) return '09:00';
+        if (/\bde tarde\b|\btarde\b/.test(q)) return '14:00';
+        if (/\bao fim da tarde\b|\bfim da tarde\b/.test(q)) return '17:00';
+        if (/\bde noite\b|\bnoite\b/.test(q)) return '19:00';
+        if (/\bmeio dia\b|\bmeio-dia\b/.test(q)) return '12:00';
+        return null;
+    }
+
+    function tgSmartV4DuracaoMin(frase){
+        const q=tgSmartNorm(frase);
+        let m=q.match(/\b(\d+(?:[.,]\d+)?)\s*(?:h|hora|horas)\b/);
+        if (m) return Math.round(parseFloat(m[1].replace(',','.'))*60);
+
+        m=q.match(/\b(\d+)\s*(?:min|minuto|minutos)\b/);
+        if (m) return Number(m[1]);
+
+        m=q.match(/\bmeia\s+hora\b/);
+        if (m) return 30;
+
+        m=q.match(/\buma\s+hora\b/);
+        if (m) return 60;
+
+        m=q.match(/\bduas\s+horas\b/);
+        if (m) return 120;
+
+        m=q.match(/\btres\s+horas\b|\btrês\s+horas\b/);
+        if (m) return 180;
+
+        return null;
+    }
+
+    function tgSmartV4HoraFim(horaInicio,duracaoMin){
+        if (!horaInicio || !duracaoMin) return null;
+        const m=horaInicio.match(/^(\d{2}):(\d{2})$/);
+        if (!m) return null;
+        const total=Number(m[1])*60+Number(m[2])+duracaoMin;
+        const hh=String(Math.floor(total/60)%24).padStart(2,'0');
+        const mm=String(total%60).padStart(2,'0');
+        return `${hh}:${mm}`;
+    }
+
+    function tgSmartV4EncontrarPessoas(frase){
+        const n=tgSmartNorm(frase);
+        const pessoas=tgSmartV3Pessoas();
+        const encontrados=[];
+        for (const p of pessoas){
+            const nome=tgSmartNorm(p.nome||'');
+            if (!nome) continue;
+
+            if (n.includes(nome)){
+                encontrados.push(p);
+                continue;
+            }
+
+            const partes=nome.split(/\s+/).filter(x=>x.length>=3);
+            const matches=partes.filter(x=>n.includes(x)).length;
+            if (matches>=1 && partes.length<=2) encontrados.push(p);
+            else if (matches>=2) encontrados.push(p);
+        }
+
+        const vistos=new Set();
+        return encontrados.filter(p=>{
+            const k=String(p.id);
+            if (vistos.has(k)) return false;
+            vistos.add(k);
+            return true;
+        }).slice(0,6);
+    }
+
+    function tgSmartV4ScoreCliente(cliente, fraseNorm){
+        const nome=tgSmartNorm(cliente.nome||cliente.empresa||cliente.designacao||'');
+        if (!nome) return 0;
+
+        if (fraseNorm.includes(nome)) return 1000 + nome.length;
+
+        let score=0;
+        const palavras=nome.split(/\s+/).filter(x=>x.length>=3);
+        for (const p of palavras){
+            if (fraseNorm.includes(p)) score += p.length * 10;
+        }
+
+        const nif=String(cliente.nif||'').trim();
+        if (nif && fraseNorm.includes(nif)) score += 1200;
+
+        return score;
+    }
+
+    function tgSmartV4EncontrarCliente(frase){
+        const n=tgSmartNorm(frase);
+        const clientes=tgSmartArr('clientes');
+        const ranking=clientes
+            .map(c=>({c,score:tgSmartV4ScoreCliente(c,n)}))
+            .filter(x=>x.score>0)
+            .sort((a,b)=>b.score-a.score);
+
+        if (!ranking.length) return null;
+        if (ranking.length>1 && ranking[0].score===ranking[1].score && ranking[0].score<1000) return null;
+        return ranking[0].c;
+    }
+
+    function tgSmartV4ExtrairDescricao(frase, dados){
+        let s=String(frase||'').trim();
+
+        const removiveis = [
+            /\b(cria|criar|nova|novo|marca|marcar|agenda|agendar)\b/ig,
+            /\b(uma\s+)?(os|ordem de servico|ordem de serviço)\b/ig,
+            /\b(para|no cliente|cliente)\b/ig
+        ];
+        removiveis.forEach(r=>s=s.replace(r,' '));
+
+        if (dados.cliente?.nome){
+            const esc=dados.cliente.nome.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+            s=s.replace(new RegExp(esc,'ig'),' ');
+        }
+
+        for (const p of (dados.pessoas||[])){
+            if (!p?.nome) continue;
+            const esc=p.nome.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+            s=s.replace(new RegExp(esc,'ig'),' ');
+        }
+
+        s=s.replace(/\b(hoje|amanha|depois de amanha|segunda(?: feira)?|terca(?: feira)?|terça(?: feira)?|quarta(?: feira)?|quinta(?: feira)?|sexta(?: feira)?|sabado|sábado|domingo)\b/ig,' ');
+        s=s.replace(/\b(?:às|as)\s*\d{1,2}(?::\d{2}|h\d{0,2})?\b/ig,' ');
+        s=s.replace(/\b(de manha|manhã|de tarde|tarde|ao fim da tarde|fim da tarde|de noite|noite)\b/ig,' ');
+        s=s.replace(/\b\d+(?:[.,]\d+)?\s*(?:h|hora|horas|min|minuto|minutos)\b/ig,' ');
+        s=s.replace(/\b(com|durante|pela|pelo|e)\b/ig,' ');
+        s=s.replace(/\s+/g,' ').replace(/^[,;:\- ]+|[,;:\- ]+$/g,'').trim();
+
+        return s.length>=3 ? s.slice(0,500) : '';
+    }
+
+    function tgSmartV4InterpretarOS(frase){
+        const cliente=tgSmartV4EncontrarCliente(frase);
+        const pessoas=tgSmartV4EncontrarPessoas(frase);
+        const data=tgSmartV4DataNatural(frase);
+        const hora=tgSmartV4HoraNatural(frase);
+        const duracaoMin=tgSmartV4DuracaoMin(frase);
+        const horaFim=tgSmartV4HoraFim(hora,duracaoMin);
+
+        const dados={cliente,pessoas,data,hora,duracaoMin,horaFim};
+        dados.descricao=tgSmartV4ExtrairDescricao(frase,dados);
+        return dados;
+    }
+
+    function tgSmartV4ResumoOS(d){
+        const linhas=[];
+        if (d.cliente) linhas.push(`Cliente: ${d.cliente.nome || d.cliente.empresa}`);
+        if (d.data) linhas.push(`Data: ${d.data}`);
+        if (d.hora) linhas.push(`Hora: ${d.hora}${d.horaFim?`–${d.horaFim}`:''}`);
+        if (d.duracaoMin) linhas.push(`Duração: ${d.duracaoMin} min`);
+        if (d.pessoas?.length) linhas.push(`Técnico${d.pessoas.length>1?'s':''}: ${d.pessoas.map(p=>p.nome).join(', ')}`);
+        if (d.descricao) linhas.push(`Descrição: ${d.descricao}`);
+        return linhas;
+    }
+
+    function tgSmartV4PreencherOS(d){
+        if (typeof abrirModal !== 'function') throw new Error('Não consegui abrir o formulário de OS.');
+
+        abrirModal('servico', null);
+
+        setTimeout(()=>{
+            try {
+                if (d.cliente){
+                    const h=document.getElementById('s_cliente');
+                    const busca=document.getElementById('s_cliente_busca');
+                    if (h) h.value=d.cliente.id;
+                    if (busca) busca.value=d.cliente.nome || d.cliente.empresa || '';
+                    try { if (typeof _osPreencherMorada==='function') _osPreencherMorada(); } catch(e){}
+                }
+
+                if (d.data && document.getElementById('s_data'))
+                    document.getElementById('s_data').value=d.data;
+
+                if (d.hora && document.getElementById('s_hora'))
+                    document.getElementById('s_hora').value=d.hora;
+
+                const fim=document.getElementById('s_hora_fim') || document.getElementById('s_horafim');
+                if (d.horaFim && fim) fim.value=d.horaFim;
+
+                if (d.pessoas?.length){
+                    const checks=[...document.querySelectorAll('.s-func-check')];
+                    for (const p of d.pessoas){
+                        const chk=checks.find(c=>String(c.value)===String(p.id));
+                        if (chk) chk.checked=true;
+                    }
+                    try { if (typeof _sAtualizarFuncPrincipal==='function') _sAtualizarFuncPrincipal(); } catch(e){}
+                }
+
+                const desc=document.getElementById('s_descricao');
+                if (desc && d.descricao && !desc.value.trim()) desc.value=d.descricao;
+
+                // Se existir campo de duração, usa-o.
+                const dur = document.getElementById('s_duracao') || document.getElementById('s_duracao_min');
+                if (dur && d.duracaoMin) dur.value=d.duracaoMin;
+
+            } catch(e){
+                console.error('TG Smart v4 — preenchimento OS:',e);
+            }
+        },160);
+    }
+
+    function tgSmartV4CriarOSNatural(frase){
+        const d=tgSmartV4InterpretarOS(frase);
+        const resumo=tgSmartV4ResumoOS(d);
+
+        // Se a frase não deu informação suficiente, usa o comportamento antigo.
+        if (!resumo.length) return tgSmartV3CriarOSRascunho(frase);
+
+        adicionarMensagemTG(
+            `Percebi o seguinte:\n${resumo.map(x=>'• '+x).join('\n')}`,
+            'bot'
+        );
+
+        mostrarOpcoesTG([
+            {
+                titulo:'Abrir e preencher OS',
+                descricao:'Rever antes de guardar',
+                icone:'fa-clipboard-check',
+                executar:()=>{
+                    tgSmartV4PreencherOS(d);
+                    adicionarMensagemTG('OS preparada. Revê os dados e carrega em Guardar quando estiver tudo correto.','bot');
+                    _tgDefinirEstado('sucesso',1700);
+                }
+            },
+            {
+                titulo:'Cancelar',
+                descricao:'Não criar OS',
+                icone:'fa-xmark',
+                executar:()=>{
+                    adicionarMensagemTG('Certo. Não criei nem alterei nenhuma OS.','bot');
+                    _tgDefinirEstado('chat',900);
+                }
+            }
+        ], 'Confirmar interpretação');
+
+        _tgDefinirEstado('sugestao',1600);
+        return true;
+    }
+
+    // Override só da criação de OS: mantém o restante TG Smart v3 intacto.
+    const _tgSmartV3ExecutarBase = tgSmartV3Executar;
+    tgSmartV3Executar = function(frase){
+        const q=tgSmartNorm(frase);
+        if (/\b(cria|criar|nova|novo|marca|marcar|agenda|agendar)\b/.test(q) &&
+            /\b(os|ordem de servico)\b/.test(q)){
+            return tgSmartV4CriarOSNatural(frase);
+        }
+        return _tgSmartV3ExecutarBase(frase);
+    };
+
+
+    /* ================================================================
+       TG SMART v5 — conversa guiada / preenchimento de dados em falta
+       O TG mantém um pequeno estado conversacional local e pergunta
+       apenas pelo que falta antes de preparar uma OS.
+       Sem API externa.
+    ================================================================= */
+
+    const TG_SMART_V5_STATE = {
+        fluxo:null,
+        dados:null,
+        original:'',
+        pendente:null
+    };
+
+    function tgSmartV5Reset(){
+        TG_SMART_V5_STATE.fluxo=null;
+        TG_SMART_V5_STATE.dados=null;
+        TG_SMART_V5_STATE.original='';
+        TG_SMART_V5_STATE.pendente=null;
+    }
+
+    function tgSmartV5ClientePorResposta(resposta){
+        const q=tgSmartNorm(resposta);
+        const clientes=tgSmartArr('clientes');
+
+        const porNif=clientes.find(c=>String(c.nif||'').trim() && q.includes(String(c.nif).trim()));
+        if (porNif) return porNif;
+
+        const rank=clientes
+            .map(c=>({
+                c,
+                nome:tgSmartNorm(c.nome||c.empresa||c.designacao||''),
+                score:0
+            }))
+            .map(x=>{
+                if (!x.nome) return x;
+                if (q===x.nome) x.score=2000;
+                else if (q.includes(x.nome) || x.nome.includes(q)) x.score=1500;
+                else {
+                    for (const p of x.nome.split(/\s+/).filter(p=>p.length>=3)){
+                        if (q.includes(p)) x.score+=p.length*10;
+                    }
+                }
+                return x;
+            })
+            .filter(x=>x.score>0)
+            .sort((a,b)=>b.score-a.score);
+
+        if (!rank.length) return null;
+        if (rank.length>1 && rank[0].score===rank[1].score && rank[0].score<1500) return null;
+        return rank[0].c;
+    }
+
+    function tgSmartV5PessoasPorResposta(resposta){
+        const q=tgSmartNorm(resposta);
+        const pessoas=tgSmartV3Pessoas();
+        const out=[];
+
+        for (const p of pessoas){
+            const nome=tgSmartNorm(p.nome||'');
+            if (!nome) continue;
+            if (q.includes(nome)){
+                out.push(p);
+                continue;
+            }
+            const partes=nome.split(/\s+/).filter(x=>x.length>=3);
+            const matches=partes.filter(x=>q.includes(x)).length;
+            if (matches>=1 && partes.length<=2) out.push(p);
+            else if (matches>=2) out.push(p);
+        }
+
+        const vistos=new Set();
+        return out.filter(p=>{
+            const k=String(p.id);
+            if (vistos.has(k)) return false;
+            vistos.add(k);
+            return true;
+        });
+    }
+
+    function tgSmartV5PerguntaEmFalta(d){
+        if (!d.cliente) return {campo:'cliente', pergunta:'Para que cliente queres criar a OS?'};
+        if (!d.data) return {campo:'data', pergunta:'Para que dia queres marcar a OS?'};
+        if (!d.hora) return {campo:'hora', pergunta:'A que horas queres marcar a OS?'};
+        if (!d.pessoas || !d.pessoas.length) return {campo:'pessoas', pergunta:'Que técnico ou técnicos queres atribuir?'};
+        if (!d.descricao) return {campo:'descricao', pergunta:'Qual é o trabalho ou descrição da intervenção?'};
+        return null;
+    }
+
+    function tgSmartV5ResumoFinal(d){
+        const linhas=tgSmartV4ResumoOS(d);
+        return `Já tenho os dados necessários:\n${linhas.map(x=>'• '+x).join('\n')}`;
+    }
+
+    function tgSmartV5MostrarConfirmacao(){
+        const d=TG_SMART_V5_STATE.dados;
+        adicionarMensagemTG(tgSmartV5ResumoFinal(d),'bot');
+        mostrarOpcoesTG([
+            {
+                titulo:'Abrir e preencher OS',
+                descricao:'Rever antes de guardar',
+                icone:'fa-clipboard-check',
+                executar:()=>{
+                    tgSmartV4PreencherOS(d);
+                    adicionarMensagemTG('OS preparada. Revê os dados e carrega em Guardar quando estiver tudo correto.','bot');
+                    tgSmartV5Reset();
+                    _tgDefinirEstado('sucesso',1700);
+                }
+            },
+            {
+                titulo:'Alterar dados',
+                descricao:'Corrigir antes de abrir',
+                icone:'fa-pen',
+                executar:()=>{
+                    TG_SMART_V5_STATE.pendente='campo_a_alterar';
+                    adicionarMensagemTG('Que dado queres alterar? Podes dizer: cliente, data, hora, técnico, duração ou descrição.','bot');
+                    _tgDefinirEstado('chat');
+                }
+            },
+            {
+                titulo:'Cancelar',
+                descricao:'Não criar OS',
+                icone:'fa-xmark',
+                executar:()=>{
+                    tgSmartV5Reset();
+                    adicionarMensagemTG('Certo. Não criei nem alterei nenhuma OS.','bot');
+                    _tgDefinirEstado('chat',900);
+                }
+            }
+        ], 'Confirmar OS');
+    }
+
+    function tgSmartV5PedirProximo(){
+        const d=TG_SMART_V5_STATE.dados;
+        const falta=tgSmartV5PerguntaEmFalta(d);
+        if (!falta){
+            tgSmartV5MostrarConfirmacao();
+            return true;
+        }
+        TG_SMART_V5_STATE.pendente=falta.campo;
+        adicionarMensagemTG(falta.pergunta,'bot');
+        _tgDefinirEstado('chat');
+        return true;
+    }
+
+    function tgSmartV5IniciarOS(frase){
+        const d=tgSmartV4InterpretarOS(frase);
+        TG_SMART_V5_STATE.fluxo='criar_os';
+        TG_SMART_V5_STATE.dados=d;
+        TG_SMART_V5_STATE.original=String(frase||'');
+        TG_SMART_V5_STATE.pendente=null;
+
+        const linhas=tgSmartV4ResumoOS(d);
+        if (linhas.length){
+            adicionarMensagemTG(`Percebi até agora:\n${linhas.map(x=>'• '+x).join('\n')}`,'bot');
+        }
+
+        return tgSmartV5PedirProximo();
+    }
+
+    function tgSmartV5AplicarCampo(campo,resposta){
+        const d=TG_SMART_V5_STATE.dados;
+        if (!d) return false;
+
+        if (campo==='cliente'){
+            const c=tgSmartV5ClientePorResposta(resposta);
+            if (!c){
+                adicionarMensagemTG('Não consegui identificar esse cliente. Tenta escrever o nome completo ou o NIF.','bot');
+                return true;
+            }
+            d.cliente=c;
+            adicionarMensagemTG(`Cliente definido: ${c.nome||c.empresa||c.designacao}.`,'bot');
+            TG_SMART_V5_STATE.pendente=null;
+            return tgSmartV5PedirProximo();
+        }
+
+        if (campo==='data'){
+            const data=tgSmartV4DataNatural(resposta);
+            if (!data){
+                adicionarMensagemTG('Não consegui perceber a data. Podes dizer, por exemplo, “amanhã”, “sexta-feira” ou “15/09”.','bot');
+                return true;
+            }
+            d.data=data;
+            adicionarMensagemTG(`Data definida: ${data}.`,'bot');
+            TG_SMART_V5_STATE.pendente=null;
+            return tgSmartV5PedirProximo();
+        }
+
+        if (campo==='hora'){
+            const hora=tgSmartV4HoraNatural(resposta);
+            if (!hora){
+                adicionarMensagemTG('Não consegui perceber a hora. Podes dizer, por exemplo, “às 10”, “10:30” ou “de manhã”.','bot');
+                return true;
+            }
+            d.hora=hora;
+            if (d.duracaoMin) d.horaFim=tgSmartV4HoraFim(hora,d.duracaoMin);
+            adicionarMensagemTG(`Hora definida: ${hora}.`,'bot');
+            TG_SMART_V5_STATE.pendente=null;
+            return tgSmartV5PedirProximo();
+        }
+
+        if (campo==='pessoas'){
+            const pessoas=tgSmartV5PessoasPorResposta(resposta);
+            if (!pessoas.length){
+                adicionarMensagemTG('Não consegui identificar o técnico. Escreve o nome como aparece na Total Gest.','bot');
+                return true;
+            }
+            d.pessoas=pessoas;
+            adicionarMensagemTG(`Técnico${pessoas.length>1?'s':''}: ${pessoas.map(p=>p.nome).join(', ')}.`,'bot');
+            TG_SMART_V5_STATE.pendente=null;
+            return tgSmartV5PedirProximo();
+        }
+
+        if (campo==='descricao'){
+            const s=String(resposta||'').trim();
+            if (s.length<3){
+                adicionarMensagemTG('A descrição parece demasiado curta. Diz-me resumidamente o trabalho a realizar.','bot');
+                return true;
+            }
+            d.descricao=s.slice(0,500);
+            adicionarMensagemTG('Descrição registada.','bot');
+            TG_SMART_V5_STATE.pendente=null;
+            return tgSmartV5PedirProximo();
+        }
+
+        if (campo==='duracao'){
+            const min=tgSmartV4DuracaoMin(resposta);
+            if (!min){
+                adicionarMensagemTG('Não consegui perceber a duração. Podes dizer “30 minutos”, “1 hora” ou “2 horas”.','bot');
+                return true;
+            }
+            d.duracaoMin=min;
+            d.horaFim=tgSmartV4HoraFim(d.hora,min);
+            adicionarMensagemTG(`Duração definida: ${min} minutos.`,'bot');
+            TG_SMART_V5_STATE.pendente=null;
+            return tgSmartV5MostrarConfirmacao();
+        }
+
+        return false;
+    }
+
+    function tgSmartV5CampoParaAlterar(resposta){
+        const q=tgSmartNorm(resposta);
+        let campo=null;
+        if (q.includes('cliente')) campo='cliente';
+        else if (q.includes('data') || q.includes('dia')) campo='data';
+        else if (q.includes('hora')) campo='hora';
+        else if (q.includes('tecnico') || q.includes('funcionario') || q.includes('pessoa')) campo='pessoas';
+        else if (q.includes('duracao') || q.includes('tempo')) campo='duracao';
+        else if (q.includes('descricao') || q.includes('trabalho')) campo='descricao';
+
+        if (!campo){
+            adicionarMensagemTG('Diz-me qual queres alterar: cliente, data, hora, técnico, duração ou descrição.','bot');
+            return true;
+        }
+
+        TG_SMART_V5_STATE.pendente=campo;
+        const perguntas={
+            cliente:'Qual é o novo cliente?',
+            data:'Qual é a nova data?',
+            hora:'Qual é a nova hora?',
+            pessoas:'Que técnico ou técnicos queres atribuir?',
+            duracao:'Qual é a nova duração?',
+            descricao:'Qual é a nova descrição?'
+        };
+        adicionarMensagemTG(perguntas[campo],'bot');
+        return true;
+    }
+
+    function tgSmartV5IntercetarResposta(frase){
+        if (TG_SMART_V5_STATE.fluxo!=='criar_os') return false;
+
+        const q=tgSmartNorm(frase);
+
+        if (/^(cancelar|cancela|esquece|parar|para)$/.test(q)){
+            tgSmartV5Reset();
+            adicionarMensagemTG('Fluxo cancelado. Não alterei nada.','bot');
+            _tgDefinirEstado('chat',900);
+            return true;
+        }
+
+        if (TG_SMART_V5_STATE.pendente==='campo_a_alterar'){
+            return tgSmartV5CampoParaAlterar(frase);
+        }
+
+        if (TG_SMART_V5_STATE.pendente){
+            return tgSmartV5AplicarCampo(TG_SMART_V5_STATE.pendente,frase);
+        }
+
+        return false;
+    }
+
+    // V5 assume o início da criação de OS para permitir diálogo quando faltam dados.
+    const _tgSmartV3ExecutarV4Base = tgSmartV3Executar;
+    tgSmartV3Executar = function(frase){
+        if (tgSmartV5IntercetarResposta(frase)) return true;
+
+        const q=tgSmartNorm(frase);
+        if (/\b(cria|criar|nova|novo|marca|marcar|agenda|agendar)\b/.test(q) &&
+            /\b(os|ordem de servico)\b/.test(q)){
+            return tgSmartV5IniciarOS(frase);
+        }
+
+        return _tgSmartV3ExecutarV4Base(frase);
+    };
+
+
+    /* ================================================================
+       TG SMART v6 — visão transversal da empresa
+       Clientes + contratos + stock/material + colaboradores
+       Sem API externa e sem alterar dados automaticamente.
+    ================================================================= */
+
+    function tgSmartV6TenantId(){
+        try {
+            if (typeof _tenantId === 'function') return _tenantId();
+            return usuarioLogado?.adminId || usuarioLogado?.id || null;
+        } catch(e){ return null; }
+    }
+
+    function tgSmartV6Lista(nome){
+        const arr=tgSmartArr(nome);
+        const tid=tgSmartV6TenantId();
+        if (!tid) return arr;
+        const filtrada=arr.filter(x=>!x?.adminId || String(x.adminId)===String(tid));
+        return filtrada.length ? filtrada : arr;
+    }
+
+    function tgSmartV6FmtData(v){
+        if (!v) return '-';
+        const d=tgSmartDate(v);
+        if (!d) return String(v);
+        return d.toLocaleDateString('pt-PT');
+    }
+
+    function tgSmartV6Cliente(frase){
+        return tgSmartV5ClientePorResposta(frase) || tgSmartV4EncontrarCliente(frase);
+    }
+
+    function tgSmartV6Pessoa(frase){
+        const ps=tgSmartV5PessoasPorResposta(frase);
+        return ps?.[0] || tgSmartV3EncontrarPessoa(frase) || null;
+    }
+
+    function tgSmartV6ContratosCliente(clienteId){
+        return tgSmartV6Lista('contratos').filter(c=>String(c.clienteId||'')===String(clienteId||''));
+    }
+
+    function tgSmartV6OSCliente(clienteId){
+        return tgSmartV6Lista('servicos').filter(s=>String(s.clienteId||'')===String(clienteId||''));
+    }
+
+    function tgSmartV6ClienteResumo(c){
+        const os=tgSmartV6OSCliente(c.id);
+        const contratos=tgSmartV6ContratosCliente(c.id);
+        const abertas=os.filter(s=>!/\b(conclu|fechad|cancelad)\b/.test(tgSmartNorm(s.status||s.estado||'')));
+        const partes=[
+            `Cliente: ${c.nome||c.empresa||c.designacao||'-'}`,
+            c.nif ? `NIF: ${c.nif}` : null,
+            c.telefone||c.contacto ? `Contacto: ${c.telefone||c.contacto}` : null,
+            c.email ? `Email: ${c.email}` : null,
+            `OS: ${os.length} (${abertas.length} abertas)`,
+            `Contratos: ${contratos.length}`
+        ].filter(Boolean);
+        return partes.join('\n');
+    }
+
+    function tgSmartV6ContratosAVencer(dias=30){
+        const agora=new Date(); agora.setHours(0,0,0,0);
+        const limite=new Date(agora); limite.setDate(limite.getDate()+dias);
+        return tgSmartV6Lista('contratos').filter(c=>{
+            const raw=c.dataFim||c.fim||c.validade||c.dataValidade||c.termino||c.dataTermino;
+            const d=tgSmartDate(raw);
+            return d && d>=agora && d<=limite;
+        }).sort((a,b)=>{
+            const da=tgSmartDate(a.dataFim||a.fim||a.validade||a.dataValidade||a.termino||a.dataTermino);
+            const db=tgSmartDate(b.dataFim||b.fim||b.validade||b.dataValidade||b.termino||b.dataTermino);
+            return da-db;
+        });
+    }
+
+    function tgSmartV6StockBaixo(){
+        return tgSmartV6Lista('artigos').filter(a=>{
+            const atual=Number(a.stock??a.quantidade??a.qtd??a.stockAtual??0);
+            const minimo=Number(a.stockMinimo??a.minimo??a.stock_minimo??0);
+            return minimo>0 && atual<=minimo;
+        });
+    }
+
+    function tgSmartV6EncontrarArtigo(frase){
+        const q=tgSmartNorm(frase);
+        const arr=tgSmartV6Lista('artigos');
+        let best=null, score=0;
+        for(const a of arr){
+            const nome=tgSmartNorm(a.nome||a.designacao||'');
+            const ref=tgSmartNorm(a.referencia||a.ref||'');
+            let s=0;
+            if(ref && q.includes(ref)) s=2000+ref.length;
+            if(nome && q.includes(nome)) s=Math.max(s,1500+nome.length);
+            if(nome){
+                for(const p of nome.split(/\s+/).filter(x=>x.length>=3)) if(q.includes(p)) s+=p.length*10;
+            }
+            if(s>score){score=s;best=a;}
+        }
+        return score>0?best:null;
+    }
+
+    function tgSmartV6Responder(frase){
+        const q=tgSmartNorm(frase);
+
+        // Cliente específico
+        if(/\b(cliente|nif|contacto|telefone|email)\b/.test(q)){
+            const c=tgSmartV6Cliente(frase);
+            if(c && /\b(resumo|dados|ficha|cliente|nif|contacto|telefone|email|quantas os|contratos)\b/.test(q)){
+                return tgSmartV6ClienteResumo(c);
+            }
+        }
+
+        // Contratos
+        if(/\bcontrat/.test(q)){
+            if(/\b(venc|caduc|expir|proxim|30 dias)\b/.test(q)){
+                const lista=tgSmartV6ContratosAVencer(30);
+                if(!lista.length) return 'Não encontrei contratos a vencer nos próximos 30 dias.';
+                const linhas=lista.slice(0,8).map(c=>{
+                    const cli=tgSmartV6Lista('clientes').find(x=>String(x.id)===String(c.clienteId));
+                    const data=c.dataFim||c.fim||c.validade||c.dataValidade||c.termino||c.dataTermino;
+                    return `• ${cli?.nome||c.nome||'Contrato'} — ${tgSmartV6FmtData(data)}`;
+                });
+                return `Encontrei ${lista.length} contrato${lista.length===1?'':'s'} a vencer nos próximos 30 dias:\n${linhas.join('\n')}${lista.length>8?'\n• …':''}`;
+            }
+        }
+
+        // Stock/material
+        if(/\b(stock|material|artigo|referencia|referência)\b/.test(q)){
+            if(/\b(baixo|minimo|mínimo|repor|reposicao|reposição)\b/.test(q)){
+                const lista=tgSmartV6StockBaixo();
+                if(!lista.length) return 'Não encontrei artigos no nível mínimo de stock.';
+                const linhas=lista.slice(0,10).map(a=>{
+                    const atual=a.stock??a.quantidade??a.qtd??a.stockAtual??0;
+                    const minimo=a.stockMinimo??a.minimo??a.stock_minimo??0;
+                    return `• ${a.nome||a.designacao||a.referencia||'Artigo'} — ${atual} em stock / mínimo ${minimo}`;
+                });
+                return `Há ${lista.length} artigo${lista.length===1?'':'s'} a precisar de atenção:\n${linhas.join('\n')}`;
+            }
+            const a=tgSmartV6EncontrarArtigo(frase);
+            if(a){
+                const atual=a.stock??a.quantidade??a.qtd??a.stockAtual??0;
+                const minimo=a.stockMinimo??a.minimo??a.stock_minimo;
+                return [
+                    `Artigo: ${a.nome||a.designacao||'-'}`,
+                    a.referencia||a.ref ? `Referência: ${a.referencia||a.ref}` : null,
+                    `Stock atual: ${atual}`,
+                    minimo!=null ? `Stock mínimo: ${minimo}` : null
+                ].filter(Boolean).join('\n');
+            }
+        }
+
+        // Colaboradores
+        if(/\b(funcionario|funcionário|colaborador|tecnico|técnico)\b/.test(q)){
+            const p=tgSmartV6Pessoa(frase);
+            if(p){
+                const os=tgSmartV6Lista('servicos').filter(s=>{
+                    const ids=[...(s.funcionariosIds||[]),s.funcionarioId].filter(Boolean).map(String);
+                    return ids.includes(String(p.id));
+                });
+                const abertas=os.filter(s=>!/\b(conclu|fechad|cancelad)\b/.test(tgSmartNorm(s.status||s.estado||'')));
+                return [
+                    `Colaborador: ${p.nome||'-'}`,
+                    p.role ? `Perfil: ${p.role}` : null,
+                    p.email ? `Email: ${p.email}` : null,
+                    p.telefone ? `Telefone: ${p.telefone}` : null,
+                    `OS atribuídas: ${os.length} (${abertas.length} abertas)`
+                ].filter(Boolean).join('\n');
+            }
+            if(/\bquantos|total\b/.test(q)){
+                const lista=tgSmartV6Lista('funcionarios').filter(f=>!f.suspenso);
+                return `Tens ${lista.length} colaborador${lista.length===1?' ativo':'es ativos'} registado${lista.length===1?'':'s'}.`;
+            }
+        }
+
+        // Visão geral transversal
+        if(/\b(resumo da empresa|resumo geral|visao geral|visão geral|estado da empresa)\b/.test(q)){
+            const clientes=tgSmartV6Lista('clientes');
+            const funcs=tgSmartV6Lista('funcionarios').filter(f=>!f.suspenso);
+            const contratos=tgSmartV6Lista('contratos');
+            const stock=tgSmartV6StockBaixo();
+            const vencer=tgSmartV6ContratosAVencer(30);
+            return [
+                'Resumo da empresa:',
+                `• ${clientes.length} clientes`,
+                `• ${funcs.length} colaboradores ativos`,
+                `• ${contratos.length} contratos`,
+                `• ${vencer.length} contratos a vencer em 30 dias`,
+                `• ${stock.length} artigos no nível mínimo de stock`
+            ].join('\n');
+        }
+
+        return null;
+    }
+
+    function tgSmartV6AcoesContexto(){
+        const sec=tgSmartNorm(tgSmartSecao()||'');
+        if(sec.includes('cliente')) return [
+            {titulo:'Resumo de cliente',descricao:'Dados, OS e contratos',icone:'fa-user',pergunta:'Dá-me o resumo deste cliente'},
+            {titulo:'Contratos a vencer',descricao:'Próximos 30 dias',icone:'fa-file-contract',pergunta:'Que contratos vencem nos próximos 30 dias?'},
+            {titulo:'Total de clientes',descricao:'Clientes registados',icone:'fa-users',pergunta:'Quantos clientes tenho?'}
+        ];
+        if(sec.includes('contrat')) return [
+            {titulo:'A vencer em 30 dias',descricao:'Ver contratos próximos do fim',icone:'fa-clock',pergunta:'Que contratos vencem nos próximos 30 dias?'},
+            {titulo:'Resumo geral',descricao:'Visão transversal',icone:'fa-chart-line',pergunta:'Dá-me um resumo da empresa'}
+        ];
+        if(sec.includes('stock') || sec.includes('artigo') || sec.includes('material')) return [
+            {titulo:'Stock baixo',descricao:'Artigos a repor',icone:'fa-boxes-stacked',pergunta:'Que artigos estão com stock baixo?'},
+            {titulo:'Resumo geral',descricao:'Visão transversal',icone:'fa-chart-line',pergunta:'Dá-me um resumo da empresa'}
+        ];
+        if(sec.includes('func') || sec.includes('equipa') || sec.includes('colaborador')) return [
+            {titulo:'Colaboradores ativos',descricao:'Total registado',icone:'fa-users',pergunta:'Quantos colaboradores tenho?'},
+            {titulo:'Resumo geral',descricao:'Visão transversal',icone:'fa-chart-line',pergunta:'Dá-me um resumo da empresa'}
+        ];
+        return null;
+    }
+
+    window.TGSmart={
+        secao:tgSmartSecao,
+        resumo:tgSmartResumo,
+        responder:tgSmartResponder,
+        registoAtual:tgSmartRegistoAtual,
+        acoesContexto:tgSmartAcoesContexto,
+        executar:tgSmartV3Executar,
+        criarOSRascunho:tgSmartV3CriarOSRascunho,
+        interpretarOS:tgSmartV4InterpretarOS,
+        criarOSNatural:tgSmartV4CriarOSNatural,
+        iniciarOSConversacional:tgSmartV5IniciarOS,
+        estadoConversacional:TG_SMART_V5_STATE,
+        resetConversa:tgSmartV5Reset
+    };
+
+
+
+    /* ================================================================
+       TG SMART v6.1 — cruzamento operacional entre módulos
+       Alertas explicáveis, priorização e visão 360º do cliente.
+       Apenas leitura: não altera dados.
+    ================================================================= */
+
+    function tgSmartV61DiasAte(v){
+        const d=tgSmartDate(v);
+        if(!d) return null;
+        const hoje=new Date(); hoje.setHours(0,0,0,0);
+        d.setHours(0,0,0,0);
+        return Math.ceil((d-hoje)/86400000);
+    }
+
+    function tgSmartV61StatusAberto(s){
+        return !/\b(conclu|fechad|cancelad|finalizad)\b/.test(tgSmartNorm(s?.status||s?.estado||''));
+    }
+
+    function tgSmartV61OSAtrasada(s){
+        if(!tgSmartV61StatusAberto(s)) return false;
+        const d=tgSmartDate(s?.data||s?.dataAgendada||s?.inicio);
+        if(!d) return false;
+        const hoje=new Date(); hoje.setHours(0,0,0,0);
+        d.setHours(0,0,0,0);
+        return d<hoje;
+    }
+
+    function tgSmartV61OSSemTecnico(s){
+        return !s?.funcionarioId && !(Array.isArray(s?.funcionariosIds) && s.funcionariosIds.length);
+    }
+
+    function tgSmartV61NomeCliente(id){
+        const c=tgSmartV6Lista('clientes').find(x=>String(x.id)===String(id));
+        return c?.nome||c?.empresa||c?.designacao||'Cliente';
+    }
+
+    function tgSmartV61ContratoData(c){
+        return c?.dataFim||c?.fim||c?.validade||c?.dataValidade||c?.termino||c?.dataTermino||null;
+    }
+
+    function tgSmartV61AlertasCliente(cliente){
+        if(!cliente) return [];
+        const cid=cliente.id;
+        const os=tgSmartV6OSCliente(cid);
+        const contratos=tgSmartV6ContratosCliente(cid);
+        const alertas=[];
+
+        const atrasadas=os.filter(tgSmartV61OSAtrasada);
+        if(atrasadas.length){
+            alertas.push({
+                nivel:3,
+                tipo:'os_atrasadas',
+                texto:`${atrasadas.length} OS atrasada${atrasadas.length===1?'':'s'}`,
+                detalhe:'Existem intervenções com data anterior a hoje ainda não concluídas.'
+            });
+        }
+
+        const semTecnico=os.filter(s=>tgSmartV61StatusAberto(s) && tgSmartV61OSSemTecnico(s));
+        if(semTecnico.length){
+            alertas.push({
+                nivel:2,
+                tipo:'os_sem_tecnico',
+                texto:`${semTecnico.length} OS aberta${semTecnico.length===1?'':'s'} sem técnico atribuído`,
+                detalhe:'Convém validar a atribuição antes da intervenção.'
+            });
+        }
+
+        const aVencer=contratos.map(c=>({c,dias:tgSmartV61DiasAte(tgSmartV61ContratoData(c))}))
+            .filter(x=>x.dias!==null && x.dias>=0 && x.dias<=30)
+            .sort((a,b)=>a.dias-b.dias);
+        if(aVencer.length){
+            const mais=aVencer[0];
+            alertas.push({
+                nivel:mais.dias<=7?3:2,
+                tipo:'contrato_vencer',
+                texto:`Contrato a vencer em ${mais.dias} dia${mais.dias===1?'':'s'}`,
+                detalhe:`Data: ${tgSmartV6FmtData(tgSmartV61ContratoData(mais.c))}.`
+            });
+        }
+
+        const vencidos=contratos.map(c=>({c,dias:tgSmartV61DiasAte(tgSmartV61ContratoData(c))}))
+            .filter(x=>x.dias!==null && x.dias<0);
+        if(vencidos.length){
+            alertas.push({
+                nivel:3,
+                tipo:'contrato_vencido',
+                texto:`${vencidos.length} contrato${vencidos.length===1?' vencido':'s vencidos'}`,
+                detalhe:'Existem contratos cuja data de fim já passou.'
+            });
+        }
+
+        return alertas.sort((a,b)=>b.nivel-a.nivel);
+    }
+
+    function tgSmartV61AlertasEmpresa(){
+        const alertas=[];
+        const servicos=tgSmartV6Lista('servicos');
+        const atrasadas=servicos.filter(tgSmartV61OSAtrasada);
+        const semTecnico=servicos.filter(s=>tgSmartV61StatusAberto(s) && tgSmartV61OSSemTecnico(s));
+        const contratos=tgSmartV6ContratosAVencer(30);
+        const stock=tgSmartV6StockBaixo();
+
+        if(atrasadas.length) alertas.push({nivel:3,tipo:'os_atrasadas',quantidade:atrasadas.length,texto:`${atrasadas.length} OS atrasada${atrasadas.length===1?'':'s'}`});
+        if(semTecnico.length) alertas.push({nivel:2,tipo:'os_sem_tecnico',quantidade:semTecnico.length,texto:`${semTecnico.length} OS aberta${semTecnico.length===1?'':'s'} sem técnico`});
+        if(contratos.length) alertas.push({nivel:2,tipo:'contratos',quantidade:contratos.length,texto:`${contratos.length} contrato${contratos.length===1?'':'s'} a vencer em 30 dias`});
+        if(stock.length) alertas.push({nivel:2,tipo:'stock',quantidade:stock.length,texto:`${stock.length} artigo${stock.length===1?'':'s'} no nível mínimo de stock`});
+
+        return alertas.sort((a,b)=>b.nivel-a.nivel);
+    }
+
+    function tgSmartV61VisaoCliente(cliente){
+        const base=tgSmartV6ClienteResumo(cliente);
+        const alertas=tgSmartV61AlertasCliente(cliente);
+        if(!alertas.length) return `${base}\n\nNão encontrei alertas operacionais relevantes para este cliente.`;
+        return `${base}\n\nAtenção operacional:\n${alertas.map(a=>`• ${a.texto}${a.detalhe?' — '+a.detalhe:''}`).join('\n')}`;
+    }
+
+    function tgSmartV61Prioridades(){
+        const alertas=tgSmartV61AlertasEmpresa();
+        if(!alertas.length) return 'Não encontrei alertas operacionais prioritários neste momento.';
+        const linhas=alertas.map((a,i)=>`${i+1}. ${a.texto}`);
+        return `Prioridades que encontrei:\n${linhas.join('\n')}\n\nEstes alertas são calculados a partir dos dados atuais da Total Gest e não alteram qualquer registo.`;
+    }
+
+    function tgSmartV61ClientesComRisco(){
+        const clientes=tgSmartV6Lista('clientes');
+        const itens=clientes.map(c=>({c,alertas:tgSmartV61AlertasCliente(c)}))
+            .filter(x=>x.alertas.length)
+            .map(x=>({
+                ...x,
+                score:x.alertas.reduce((s,a)=>s+a.nivel,0)
+            }))
+            .sort((a,b)=>b.score-a.score);
+
+        if(!itens.length) return 'Não encontrei clientes com alertas operacionais relevantes.';
+        const linhas=itens.slice(0,8).map(x=>{
+            const nome=x.c.nome||x.c.empresa||x.c.designacao||'Cliente';
+            return `• ${nome}: ${x.alertas.map(a=>a.texto).join('; ')}`;
+        });
+        return `Clientes que merecem atenção:\n${linhas.join('\n')}${itens.length>8?'\n• …':''}`;
+    }
+
+    function tgSmartV61Responder(frase){
+        const q=tgSmartNorm(frase);
+
+        if(/\b(prioridade|prioridades|o que devo tratar|o que tenho de tratar|alertas operacionais|problemas da empresa)\b/.test(q)){
+            return tgSmartV61Prioridades();
+        }
+
+        if(/\b(clientes? com risco|clientes? com problemas|clientes? precisam de atencao|clientes? merecem atencao)\b/.test(q)){
+            return tgSmartV61ClientesComRisco();
+        }
+
+        if(/\b(visao 360|visão 360|resumo completo|estado do cliente|situacao do cliente|situação do cliente)\b/.test(q)){
+            const c=tgSmartV6Cliente(frase);
+            if(c) return tgSmartV61VisaoCliente(c);
+        }
+
+        const atual=tgSmartRegistoAtual?.();
+        if(atual?.entidade==='cliente' && /\b(alerta|alertas|problema|problemas|atencao|atenção|resumo completo|estado)\b/.test(q)){
+            return tgSmartV61VisaoCliente(atual.registo);
+        }
+
+        return null;
+    }
+
+    function tgSmartV61AcoesContexto(){
+        const sec=tgSmartNorm(tgSmartSecao()||'');
+        if(sec.includes('inicio') || sec.includes('dashboard')){
+            return [
+                {titulo:'Prioridades',descricao:'O que precisa de atenção agora',icone:'fa-triangle-exclamation',pergunta:'Quais são as minhas prioridades?'},
+                {titulo:'Clientes com alertas',descricao:'Cruzar OS e contratos',icone:'fa-user-shield',pergunta:'Que clientes precisam de atenção?'},
+                {titulo:'Resumo da empresa',descricao:'Visão transversal',icone:'fa-chart-line',pergunta:'Dá-me um resumo da empresa'}
+            ];
+        }
+        if(sec.includes('cliente')){
+            return [
+                {titulo:'Visão 360º',descricao:'Cliente, OS, contratos e alertas',icone:'fa-circle-info',pergunta:'Dá-me a visão 360 deste cliente'},
+                {titulo:'Clientes com alertas',descricao:'Quem precisa de atenção',icone:'fa-triangle-exclamation',pergunta:'Que clientes precisam de atenção?'},
+                {titulo:'Prioridades',descricao:'Problemas operacionais atuais',icone:'fa-list-check',pergunta:'Quais são as minhas prioridades?'}
+            ];
+        }
+        return null;
+    }
+
+    // V6 dá prioridade a perguntas transversais e mantém todos os motores anteriores.
+    const _tgSmartResponderV5Base = window.TGSmart.responder;
+    window.TGSmart.responder = function(frase){
+        const r6=tgSmartV6Responder(frase);
+        if(r6) return r6;
+        return _tgSmartResponderV5Base(frase);
+    };
+
+    const _tgSmartAcoesV5Base = window.TGSmart.acoesContexto;
+    window.TGSmart.acoesContexto = function(){
+        return tgSmartV6AcoesContexto() || (_tgSmartAcoesV5Base ? _tgSmartAcoesV5Base() : []);
+    };
+
+    window.TGSmart.responderV6=tgSmartV6Responder;
+    window.TGSmart.stockBaixo=tgSmartV6StockBaixo;
+    window.TGSmart.contratosAVencer=tgSmartV6ContratosAVencer;
+
+
+    /* ================================================================
+       TG SMART v6.2 — diagnóstico -> proposta -> ação segura
+       Continua sem API externa. Alterações exigem confirmação.
+    ================================================================= */
+
+    function tgSmartV62OSSemTecnico(){
+        return tgSmartV6Lista('servicos').filter(s=>tgSmartV61StatusAberto(s) && tgSmartV61OSSemTecnico(s));
+    }
+
+    function tgSmartV62PessoasAtivas(){
+        return tgSmartV6Lista('funcionarios').filter(p=>!p.suspenso && !p.inativo && p.ativo!==false);
+    }
+
+    function tgSmartV62OSData(os){
+        return os?.data||os?.dataAgendada||os?.inicio||null;
+    }
+
+    function tgSmartV62TemOSNoDia(pessoaId, dataISO){
+        if(!dataISO) return false;
+        return tgSmartV6Lista('servicos').some(s=>{
+            if(!tgSmartV61StatusAberto(s)) return false;
+            const sd=tgSmartV62OSData(s);
+            if(!sd || String(sd).slice(0,10)!==String(dataISO).slice(0,10)) return false;
+            const ids=[...(Array.isArray(s.funcionariosIds)?s.funcionariosIds:[]),s.funcionarioId].filter(Boolean).map(String);
+            return ids.includes(String(pessoaId));
+        });
+    }
+
+    function tgSmartV62DisponiveisParaOS(os){
+        const data=tgSmartV62OSData(os);
+        return tgSmartV62PessoasAtivas()
+            .map(p=>({p,ocupado:tgSmartV62TemOSNoDia(p.id,data)}))
+            .sort((a,b)=>Number(a.ocupado)-Number(b.ocupado));
+    }
+
+    function tgSmartV62MostrarOSSemTecnico(){
+        const lista=tgSmartV62OSSemTecnico();
+        if(!lista.length) return 'Não encontrei OS abertas sem técnico atribuído.';
+        const linhas=lista.slice(0,8).map((os,i)=>{
+            const cli=tgSmartV61NomeCliente(os.clienteId);
+            const data=tgSmartV6FmtData(tgSmartV62OSData(os));
+            return `${i+1}. ${cli} — ${data}${os.hora?' às '+os.hora:''}`;
+        });
+        setTimeout(()=>{
+            try {
+                mostrarOpcoesTG([
+                    {titulo:'Ver técnicos disponíveis',descricao:'Analisar disponibilidade para a primeira OS',icone:'fa-user-check',pergunta:'Quem está disponível para a primeira OS sem técnico?'},
+                    {titulo:'Abrir Agenda',descricao:'Rever planeamento antes de atribuir',icone:'fa-calendar',acao:'agenda'}
+                ], 'O que queres fazer?');
+            } catch(e){}
+        },100);
+        return `Encontrei ${lista.length} OS aberta${lista.length===1?'':'s'} sem técnico:\n${linhas.join('\n')}${lista.length>8?'\n• …':''}`;
+    }
+
+    function tgSmartV62DisponibilidadePrimeiraOS(){
+        const os=tgSmartV62OSSemTecnico()[0];
+        if(!os) return 'Não existem OS abertas sem técnico.';
+        const pessoas=tgSmartV62DisponiveisParaOS(os);
+        if(!pessoas.length) return 'Não encontrei colaboradores ativos para sugerir.';
+        const livres=pessoas.filter(x=>!x.ocupado);
+        const mostrar=(livres.length?livres:pessoas).slice(0,6);
+        const cli=tgSmartV61NomeCliente(os.clienteId);
+        const data=tgSmartV6FmtData(tgSmartV62OSData(os));
+
+        setTimeout(()=>{
+            try {
+                mostrarOpcoesTG(mostrar.map(x=>({
+                    titulo:x.p.nome||'Colaborador',
+                    descricao:x.ocupado?'Já tem OS nesse dia — confirmar agenda':'Sem outra OS encontrada nesse dia',
+                    icone:'fa-user',
+                    pergunta:`Atribui ${x.p.nome} à primeira OS sem técnico`
+                })), `Sugestões para ${cli}`);
+            } catch(e){}
+        },100);
+
+        return `Para a OS de ${cli} em ${data}, encontrei ${livres.length} colaborador${livres.length===1?'':'es'} sem outra OS atribuída nesse dia. Mostro-te as melhores opções abaixo.\n\nNota: isto é uma pré-análise por OS atribuídas; as validações oficiais de ausência/conflito continuam a ser feitas pelo formulário da Total Gest.`;
+    }
+
+    function tgSmartV62AtribuirPrimeiraOS(frase){
+        const os=tgSmartV62OSSemTecnico()[0];
+        if(!os){ adicionarMensagemTG('Já não existem OS abertas sem técnico.', 'bot'); return true; }
+        const pessoa=tgSmartV6Pessoa(frase);
+        if(!pessoa){ adicionarMensagemTG('Não consegui identificar o colaborador. Indica o nome completo.', 'bot'); return true; }
+
+        const cli=tgSmartV61NomeCliente(os.clienteId);
+        tgSmartV3Confirmar(
+            'Confirmar atribuição',
+            `Atribuir ${pessoa.nome} à OS de ${cli}? A Total Gest continuará a validar ausências e conflitos antes de guardar.`,
+            ()=>{
+                try {
+                    tgSmartV3AtribuirPessoa(os,pessoa,false);
+                    adicionarMensagemTG(`Vou abrir a atribuição de ${pessoa.nome}. Confirma no formulário para concluir.`, 'bot');
+                } catch(e){
+                    adicionarMensagemTG('Não consegui abrir a atribuição desta OS.', 'bot');
+                }
+            }
+        );
+        return true;
+    }
+
+    function tgSmartV62AbrirContratoUrgente(){
+        const lista=tgSmartV6ContratosAVencer(30);
+        if(!lista.length){ adicionarMensagemTG('Não encontrei contratos a vencer nos próximos 30 dias.', 'bot'); return true; }
+        const c=lista[0];
+        tgSmartV3Confirmar(
+            'Abrir contrato',
+            `Abrir o contrato com vencimento mais próximo (${tgSmartV6FmtData(tgSmartV61ContratoData(c))}) para revisão?`,
+            ()=>{
+                try { abrirModal('contrato', c.id); }
+                catch(e){ adicionarMensagemTG('Não consegui abrir o contrato.', 'bot'); }
+            }
+        );
+        return true;
+    }
+
+    function tgSmartV62AbrirArtigoBaixo(){
+        const lista=tgSmartV6StockBaixo();
+        if(!lista.length){ adicionarMensagemTG('Não encontrei artigos no nível mínimo de stock.', 'bot'); return true; }
+        const a=lista[0];
+        const nome=a.nome||a.designacao||a.referencia||'artigo';
+        adicionarMensagemTG(`O artigo mais urgente é ${nome}. Vou abrir a área de stock para poderes rever a reposição.`, 'bot');
+        try { abrirSecao('stock'); } catch(e){}
+        return true;
+    }
+
+    function tgSmartV62Executar(frase){
+        const q=tgSmartNorm(frase);
+
+        if(/\b(mostra|ver|quais|lista)\b/.test(q) && /\bos\b/.test(q) && /\bsem tecnico\b/.test(q)){
+            adicionarMensagemTG(tgSmartV62MostrarOSSemTecnico(),'bot');
+            return true;
+        }
+
+        if(/\b(quem|tecnicos|tecnicos disponiveis|disponivel|disponiveis)\b/.test(q) &&
+           /\b(primeira os|os sem tecnico|atribuir)\b/.test(q)){
+            adicionarMensagemTG(tgSmartV62DisponibilidadePrimeiraOS(),'bot');
+            return true;
+        }
+
+        if(/\b(atribui|atribuir|coloca|mete)\b/.test(q) &&
+           /\b(primeira os|os sem tecnico)\b/.test(q)){
+            return tgSmartV62AtribuirPrimeiraOS(frase);
+        }
+
+        if(/\b(abre|abrir|ver)\b/.test(q) && /\bcontrato\b/.test(q) &&
+           /\b(urgente|proximo|proximo a vencer|mais proximo)\b/.test(q)){
+            return tgSmartV62AbrirContratoUrgente();
+        }
+
+        if(/\b(abre|abrir|ver)\b/.test(q) && /\b(stock|artigo|material)\b/.test(q) &&
+           /\b(baixo|urgente|repor)\b/.test(q)){
+            return tgSmartV62AbrirArtigoBaixo();
+        }
+
+        return false;
+    }
+
+    function tgSmartV62Responder(frase){
+        const q=tgSmartNorm(frase);
+        if(/\b(o que posso resolver|o que posso fazer agora|acoes recomendadas|ações recomendadas)\b/.test(q)){
+            const a=tgSmartV61AlertasEmpresa();
+            if(!a.length) return 'Não encontrei problemas operacionais prioritários para resolver agora.';
+            const linhas=a.slice(0,4).map(x=>`• ${x.texto}`);
+            setTimeout(()=>{
+                try {
+                    const op=[];
+                    if(tgSmartV62OSSemTecnico().length) op.push({titulo:'Resolver OS sem técnico',descricao:'Ver OS e sugerir colaboradores',icone:'fa-user-plus',pergunta:'Mostra as OS sem técnico'});
+                    if(tgSmartV6ContratosAVencer(30).length) op.push({titulo:'Rever contrato urgente',descricao:'Abrir o contrato que vence primeiro',icone:'fa-file-contract',pergunta:'Abre o contrato mais próximo a vencer'});
+                    if(tgSmartV6StockBaixo().length) op.push({titulo:'Rever stock baixo',descricao:'Abrir stock para reposição',icone:'fa-box',pergunta:'Abre o artigo com stock baixo'});
+                    mostrarOpcoesTG(op.slice(0,4),'Ações recomendadas');
+                } catch(e){}
+            },100);
+            return `Podes atuar nestes pontos:\n${linhas.join('\n')}`;
+        }
+        return null;
+    }
+
+    function tgSmartV62AcoesContexto(){
+        const sec=tgSmartNorm(tgSmartSecao()||'');
+        if(sec.includes('inicio') || sec.includes('dashboard')){
+            return [
+                {titulo:'Resolver agora',descricao:'Ver ações recomendadas',icone:'fa-wand-magic-sparkles',pergunta:'O que posso resolver agora?'},
+                {titulo:'OS sem técnico',descricao:'Encontrar e atribuir',icone:'fa-user-plus',pergunta:'Mostra as OS sem técnico'},
+                {titulo:'Prioridades',descricao:'Alertas operacionais',icone:'fa-triangle-exclamation',pergunta:'Quais são as minhas prioridades?'}
+            ];
+        }
+        if(sec.includes('servico') || sec.includes('agenda')){
+            return [
+                {titulo:'OS sem técnico',descricao:'Encontrar intervenções por atribuir',icone:'fa-user-plus',pergunta:'Mostra as OS sem técnico'},
+                {titulo:'Sugerir técnico',descricao:'Analisar a primeira OS sem técnico',icone:'fa-user-check',pergunta:'Quem está disponível para a primeira OS sem técnico?'}
+            ];
+        }
+        return null;
+    }
+
+    const _tgSmartResponderV6Base = window.TGSmart.responder;
+    window.TGSmart.responder = function(frase){
+        const r61=tgSmartV61Responder(frase);
+        if(r61) return r61;
+        return _tgSmartResponderV6Base(frase);
+    };
+
+    const _tgSmartAcoesV6Base = window.TGSmart.acoesContexto;
+    window.TGSmart.acoesContexto = function(){
+        return tgSmartV61AcoesContexto() || (_tgSmartAcoesV6Base ? _tgSmartAcoesV6Base() : []);
+    };
+
+    window.TGSmart.alertasEmpresa=tgSmartV61AlertasEmpresa;
+    window.TGSmart.alertasCliente=tgSmartV61AlertasCliente;
+    window.TGSmart.prioridades=tgSmartV61Prioridades;
+    window.TGSmart.visaoCliente=tgSmartV61VisaoCliente;
+
+    const _tgSmartResponderV61Base = window.TGSmart.responder;
+    window.TGSmart.responder = function(frase){
+        const r62=tgSmartV62Responder(frase);
+        if(r62) return r62;
+        return _tgSmartResponderV61Base(frase);
+    };
+
+    const _tgSmartAcoesV61Base = window.TGSmart.acoesContexto;
+    window.TGSmart.acoesContexto = function(){
+        return tgSmartV62AcoesContexto() || (_tgSmartAcoesV61Base ? _tgSmartAcoesV61Base() : []);
+    };
+
+    window.TGSmart.executarV62=tgSmartV62Executar;
+    window.TGSmart.osSemTecnico=tgSmartV62OSSemTecnico;
+    window.TGSmart.disponiveisParaOS=tgSmartV62DisponiveisParaOS;
+
     function sincronizarTGAssistente() {
         let autenticado = false;
-        try {
-            autenticado = (typeof usuarioLogado !== 'undefined' && !!usuarioLogado);
-        } catch (e) {}
+        try { autenticado = (typeof usuarioLogado !== 'undefined' && !!usuarioLogado); } catch (e) {}
 
         const rootAtual = document.getElementById('tgAssistenteRoot');
 
@@ -32333,15 +34000,13 @@ window._relPrefill = function(msg){
 
     window.sincronizarTGAssistente = sincronizarTGAssistente;
 
-    // O backup fica intacto. Este observador limita-se a verificar se a sessão
-    // já foi autenticada e, só então, monta a mascote/assistente.
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', sincronizarTGAssistente, { once: true });
     } else {
         setTimeout(sincronizarTGAssistente, 0);
     }
 
-    if (!window.__TG_ASSISTENTE_LOGIN_WATCH__) {
-        window.__TG_ASSISTENTE_LOGIN_WATCH__ = setInterval(sincronizarTGAssistente, 800);
+    if (!window.__TG_LOGIN_WATCH__) {
+        window.__TG_LOGIN_WATCH__ = setInterval(sincronizarTGAssistente, 800);
     }
 })();
