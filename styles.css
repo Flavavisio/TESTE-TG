@@ -835,6 +835,8 @@
         .alerta-s { font-size:.85rem; color:#64748b; }
         .alerta-chev { color:#94a3b8; }
         .agenda-os-hora { font-size:.72rem; color:#0f172a; font-weight:700; background:#eef2f7; border-radius:5px; padding:1px 6px; display:inline-block; }
+        .agenda-os-hora-input { font-size:.72rem; color:#0f172a; font-weight:700; background:#eef2f7; border-radius:5px; padding:1px 4px; border:none; width:62px; font-family:inherit; }
+        .agenda-os-hora-input:disabled { opacity:.6; }
         .ag-estado { font-size:.72rem; font-weight:700; text-transform:capitalize; display:inline-block; padding:1px 7px; border-radius:10px; margin-top:3px; }
         .ag-estado.concluido { color:#fff; background:#16a34a; }
         .ag-estado.pendente { color:#fff; background:#dc2626; }
@@ -868,7 +870,64 @@
         .ag-conflito-badge { color:#dc2626; font-size:.7rem; font-weight:700; animation: agConflitoPiscar 1s ease-in-out infinite; }
         @keyframes agConflitoPiscar { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
         .agenda-vazio { color:#cbd5e1; text-align:center; font-size:.8rem; padding:10px 0; }
+        .ag-clima { display:inline-flex; }
+        .ag-clima:empty { display:none; }
+
+        /* Vista "Por Técnico" (Gantt semanal) da Agenda de Obras */
+        .agenda-gantt-wrap { overflow-x:auto; }
+        .agenda-gantt { display:grid; gap:4px; min-width:900px; }
+        .agg-cab { font-weight:700; font-size:.78rem; color:#152a52; text-align:center; padding:6px 4px; background:#f1f4f9; border-radius:8px; }
+        .agg-cab.agenda-hoje { background:#fde9df; color:#f4520e; }
+        .agg-cab span.dnum { color:#94a3b8; font-weight:500; display:block; }
+        .agg-canto { background:transparent; }
+        .agg-nome { font-weight:700; font-size:.82rem; color:#152a52; display:flex; align-items:center; padding:6px 8px; background:#f8fafc; border-radius:8px; }
+        .agg-cel { background:#f8fafc; border:1px solid #e6eaf2; border-radius:8px; padding:4px; min-height:56px; display:flex; flex-direction:column; gap:4px; }
+        .agg-cel.agenda-hoje { border-color:#f4520e; border-width:2px; }
+        .agg-cel.ag-drop { outline:2px dashed #152a52; outline-offset:-2px; background:#eef2ff; }
+        body.dark-mode .agg-cab { background:#1e293b; color:#e2e8f0; }
+        body.dark-mode .agg-nome { background:#1e293b; color:#e2e8f0; }
+        body.dark-mode .agg-cel { background:#0f172a; border-color:#334155; }
+        .agenda-gantt-chip { font-size:.72rem; padding:3px 6px; border-radius:6px; background:#fff; border-left:4px solid #dc2626; cursor:pointer; line-height:1.3; }
+        .agenda-gantt-chip[draggable="true"] { cursor:grab; }
+        .agenda-gantt-chip.ag-est-concluido { border-left-color:#16a34a; }
+        .agenda-gantt-chip.ag-est-andamento { border-left-color:#facc15; }
+        .agenda-gantt-chip.ag-est-standby { border-left-color:#64748b; }
+        .agenda-gantt-chip.ag-est-pausa-almoco { border-left-color:#f59e0b; }
+        .agenda-gantt-chip.conflito { box-shadow:0 0 0 2px #dc2626 inset; }
+        .agenda-gantt-chip.bloqueada { background:#f0fdf4; cursor:not-allowed; }
+        body.dark-mode .agenda-gantt-chip { background:#141c2e; color:#e2e8f0; }
         .agenda-os { background:#fff; border:1px solid #e6eaf2; border-radius:8px; padding:7px; margin-bottom:7px; }
+        .agenda-os-mini-wrap { margin-bottom:5px; }
+        .agenda-os-mini { display:flex; align-items:center; gap:5px; background:#fff; border:1px solid #e6eaf2; border-left:4px solid #94a3b8; border-radius:6px; padding:4px 7px; font-size:.72rem; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+        .agenda-os-mini:hover { background:#f8fafc; }
+        .agenda-os-mini.ag-est-concluido { border-left-color:#16a34a; }
+        .agenda-os-mini.ag-est-andamento { border-left-color:#facc15; }
+        .agenda-os-mini.ag-est-standby { border-left-color:#64748b; }
+        .agenda-os-mini.ag-est-pausa-almoco { border-left-color:#f59e0b; }
+        .agenda-os-mini.ag-est-pendente { border-left-color:#dc2626; }
+        .agenda-os-mini .mini-tipo { color:#94a3b8; font-weight:400; }
+        .agenda-os-recolher { text-align:center; font-size:.7rem; color:#152a52; cursor:pointer; padding:4px 0 7px; font-weight:600; }
+        .agenda-os-recolher:hover { text-decoration:underline; }
+        body.dark-mode .agenda-os-mini { background:#141c2e; border-color:#334155; color:#e2e8f0; }
+        /* Seletor de vista da Agenda de Obras — 3 botões lado a lado, cada um com um mini-ícone
+           que já mostra visualmente como fica esse layout (colunas / grelha / linhas), em vez de
+           um botão só que ia alternando às escondidas sem se perceber logo o que cada um fazia. */
+        .ag-vista-seletor { display:flex; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden; }
+        .ag-vista-btn { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 11px; background:#fff; border:none; border-right:1px solid #e2e8f0; cursor:pointer; color:#64748b; font-family:inherit; }
+        .ag-vista-btn:last-child { border-right:none; }
+        .ag-vista-btn:hover { background:#f1f5f9; }
+        .ag-vista-btn .ag-vista-txt { font-size:.66rem; font-weight:700; white-space:nowrap; }
+        .ag-vista-btn.ativo { background:#152a52; color:#fff; }
+        .ag-vista-btn.ativo:hover { background:#152a52; }
+        .ag-vista-icon { display:flex; gap:2px; width:20px; height:14px; }
+        .ag-vista-icon span { flex:1; background:currentColor; opacity:.55; border-radius:1px; }
+        .ag-vista-btn.ativo .ag-vista-icon span { opacity:.9; }
+        .ag-vista-icon-mes { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr); }
+        .ag-vista-icon-gantt { flex-direction:column; }
+        .ag-vista-icon-dia { width:14px; }
+        body.dark-mode .ag-vista-seletor { border-color:#334155; }
+        body.dark-mode .ag-vista-btn { background:#1e293b; color:#94a3b8; border-color:#334155; }
+        body.dark-mode .ag-vista-btn.ativo { background:#152a52; color:#fff; }
         .agenda-os select, .agenda-os input { width:100%; padding:3px 5px; border:1px solid #e2e8f0; border-radius:6px; }
 
         /* ===== FORMULÁRIO MODERNO (funcionário / cliente / etc) ===== */
@@ -1043,6 +1102,7 @@
         body.dark-mode .agenda-os.ag-est-pendente { border-color:#fff; }
         body.dark-mode .ag-atribuidos { background:#1e293b; color:#e2e8f0 !important; }
         body.dark-mode .agenda-os-hora { background:#1e293b; color:#e2e8f0; }
+        body.dark-mode .agenda-os-hora-input { background:#1e293b; color:#e2e8f0; }
         body.dark-mode .agenda-os [style*="background:#f8fafc"] { background:#1e293b !important; color:#e2e8f0 !important; }
         body.dark-mode .agenda-os input[type="date"],
         body.dark-mode .agenda-os input[type="time"] { background:#1e293b; border:1px solid #334155; color:#e2e8f0; color-scheme:dark; }
