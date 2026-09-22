@@ -26827,13 +26827,15 @@ async function salvarAdmin(e) {
             const _modalEl = document.querySelector('#modalGenericoOverlay .modal');
             if (_modalEl) {
                 _modalEl.dataset.maxWidthOriginal = _modalEl.style.maxWidth || '';
-                _modalEl.style.maxWidth = '96vw';
-                _modalEl.style.width = '1500px';
-                _modalEl.style.height = '92vh';
-                _modalEl.style.maxHeight = '92vh';
+                _modalEl.style.maxWidth = '760px';
+                _modalEl.style.width = '44vw';
+                _modalEl.style.minWidth = '420px';
+                _modalEl.style.height = '78vh';
+                _modalEl.style.maxHeight = '78vh';
                 _modalEl.style.display = 'flex';
                 _modalEl.style.flexDirection = 'column';
             }
+            document.getElementById('rpPreviewFlutuante')?.classList.remove('open'); // só aparece ao "Personalizar" um tipo
             const _formRp = document.getElementById('modalGenericoForm');
             if (_formRp) { _formRp.style.flex = '1'; _formRp.style.minHeight = '0'; _formRp.style.display = 'flex'; _formRp.style.flexDirection = 'column'; }
             const _camposRp = document.getElementById('modalGenericoCampos');
@@ -26846,11 +26848,15 @@ async function salvarAdmin(e) {
         // Lista de tipos de trabalho próprios (criados pelo admin), com as três ações por
         // linha: Personalizar (desenhar os campos do relatório), Editar (mudar o nome) e Apagar.
         function _rpRenderListaTipos() {
+            document.getElementById('rpPreviewFlutuante')?.classList.remove('open');
             const tid = _tenantId();
             const tipos = (dados.tiposTrabalhoCustom || []).filter(t => t.adminId === tid);
             document.getElementById('modalGenericoCampos').innerHTML = `
                 <div class="rp-editor-scroll" style="height:100%;overflow-y:auto;display:flex;flex-direction:column;">
-                    <p class="help-text" style="margin-bottom:12px;">Tipos de trabalho criados por ti. Os tipos base (REX, RBI, etc.) já têm o relatório de especialidade próprio e não aparecem aqui.</p>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+                        <p class="help-text" style="margin:0;">Tipos de trabalho criados por ti. Os tipos base (REX, RBI, etc.) já têm o relatório de especialidade próprio e não aparecem aqui.</p>
+                        <button type="button" class="btn btn-sm btn-primary" style="flex-shrink:0;" onclick="_rpNovoTipo()"><i class="fas fa-plus"></i> Novo</button>
+                    </div>
                     ${tipos.length ? `
                         <div class="table-wrapper">
                             <table style="width:100%;">
@@ -26869,9 +26875,22 @@ async function salvarAdmin(e) {
                             </table>
                         </div>
                         <div id="rp_campos_area"></div>
-                    ` : `<p class="help-text">Ainda não criaste nenhum tipo de trabalho próprio. Cria um primeiro no campo "Novo tipo de trabalho" ao editar uma OS.</p>`}
+                    ` : `<p class="help-text">Ainda não criaste nenhum tipo de trabalho próprio — clica em "+ Novo" para criares o primeiro.</p>`}
                 </div>
             `;
+        }
+        // Criar um novo tipo de trabalho próprio diretamente daqui — a mesma coisa que já dava
+        // para fazer ao editar uma OS (campo "Novo tipo de trabalho"), sem precisar de lá ir.
+        function _rpNovoTipo() {
+            const nome = (prompt('Nome do novo tipo de trabalho:') || '').trim();
+            if (!nome) return;
+            const tid = _tenantId();
+            const codigo = 'CUSTOM_' + nome.toUpperCase().replace(/[^A-Z0-9]+/g, '_').slice(0, 30) + '_' + Date.now().toString(36);
+            dados.tiposTrabalhoCustom = dados.tiposTrabalhoCustom || [];
+            dados.tiposTrabalhoCustom.push({ id: gerarId(), adminId: tid, codigo, nome, criadoEm: Date.now() });
+            guardarDados(dados);
+            _rpRenderListaTipos();
+            _rpRenderCampos(codigo); // já entra a personalizar, para não ser preciso outro clique
         }
         async function _rpEditarNome(codigo) {
             const tid = _tenantId();
@@ -26901,7 +26920,7 @@ async function salvarAdmin(e) {
         function _rpRenderCampos(codigo) {
             const area = document.getElementById('rp_campos_area');
             if (!area) return;
-            if (!codigo) { area.innerHTML = ''; return; }
+            if (!codigo) { area.innerHTML = ''; document.getElementById('rpPreviewFlutuante')?.classList.remove('open'); return; }
             const tid = _tenantId();
             const tipo = (dados.tiposTrabalhoCustom || []).find(t => t.codigo === codigo && t.adminId === tid);
             if (!tipo) return;
@@ -26909,29 +26928,18 @@ async function salvarAdmin(e) {
             area.innerHTML = `
                 <div style="border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px;flex:1;display:flex;flex-direction:column;min-height:0;">
                     <a href="#" onclick="_rpRenderListaTipos();return false;" style="font-size:.82rem;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px;flex-shrink:0;"><i class="fas fa-arrow-left"></i> Voltar à lista</a>
-                    <p class="help-text" style="margin:0 0 10px;flex-shrink:0;"><i class="fas fa-arrows-up-down"></i> Arrasta os campos pela pega (⋮⋮) para os reordenar — a pré-visualização à direita atualiza logo.</p>
-                    <div style="display:flex;gap:20px;flex:1;min-height:0;" class="rp-duas-colunas">
-                    <div style="flex:1 1 38%;min-width:300px;display:flex;flex-direction:column;min-height:0;">
-                        <div id="rp_lista_campos" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;overflow-y:auto;flex:1;min-height:0;"></div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
-                            <input type="text" id="rp_novo_campo_label" placeholder="Ex: Central testada?" style="flex:1;min-width:160px;" />
-                            <select id="rp_novo_campo_tipo" style="width:150px;">
-                                ${CAMPO_TIPOS.map(c => `<option value="${c.valor}">${c.label}</option>`).join('')}
-                            </select>
-                            <button type="button" class="btn btn-sm btn-outline" onclick="_rpAdicionarCampo('${codigo}')"><i class="fas fa-plus"></i> Adicionar campo</button>
-                        </div>
-                    </div>
-                    <div style="flex:1 1 62%;min-width:380px;display:flex;flex-direction:column;min-height:0;">
-                        <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted,#64748b);font-weight:700;margin-bottom:6px;flex-shrink:0;">
-                            <i class="fas fa-eye"></i> Pré-visualização (o que o técnico vai ver)
-                        </div>
-                        <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#f8fafc;flex:1;min-height:0;">
-                            <iframe id="rp_preview_iframe" style="width:100%;height:100%;border:none;background:#fff;"></iframe>
-                        </div>
-                    </div>
+                    <p class="help-text" style="margin:0 0 10px;flex-shrink:0;"><i class="fas fa-arrows-up-down"></i> Arrasta os campos pela pega (⋮⋮) para os reordenar — o painel de pré-visualização ao lado atualiza logo.</p>
+                    <div id="rp_lista_campos" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;overflow-y:auto;flex:1;min-height:0;"></div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
+                        <input type="text" id="rp_novo_campo_label" placeholder="Ex: Central testada?" style="flex:1;min-width:160px;" />
+                        <select id="rp_novo_campo_tipo" style="width:150px;">
+                            ${CAMPO_TIPOS.map(c => `<option value="${c.valor}">${c.label}</option>`).join('')}
+                        </select>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="_rpAdicionarCampo('${codigo}')"><i class="fas fa-plus"></i> Adicionar campo</button>
                     </div>
                 </div>
             `;
+            document.getElementById('rpPreviewFlutuante')?.classList.add('open');
             _rpAtualizarLista(tipo);
             _rpAtualizarPreview(tipo);
         }
@@ -29416,6 +29424,7 @@ window._relPrefill = function(msg){
 
         function _fecharModalGenerico() {
             document.getElementById('modalGenericoOverlay').classList.remove('open', 'modal-veros');
+            document.getElementById('rpPreviewFlutuante')?.classList.remove('open');
             const _acoes = document.getElementById('modalGenericoAcoes');
             if (_acoes) _acoes.style.display = ''; // repõe o rodapé Cancelar/Guardar, para não ficar escondido nos outros usos deste modal
             const _btnCancelar = document.querySelector('#modalGenericoOverlay .modal-actions button[type="button"]');
@@ -29429,6 +29438,7 @@ window._relPrefill = function(msg){
                 // herdar isso.
                 _modalEl.style.maxWidth = '';
                 _modalEl.style.width = '';
+                _modalEl.style.minWidth = '';
                 _modalEl.style.height = '';
                 _modalEl.style.maxHeight = '';
                 _modalEl.style.display = '';

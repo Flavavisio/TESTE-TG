@@ -346,7 +346,7 @@
         .badge-demo { background:#fef3c7; color:#92400e; }
         .badge-encarregado { background:#ede9fe; color:#5b21b6; }
         .badge-analise { background:#dbeafe; color:#1e40af; }
-        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:999; padding:20px; }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:999; padding:20px; gap:20px; }
         @media (max-height:500px) and (orientation:landscape) {
             .modal-overlay { padding:6px; }
             .modal { max-width:var(--tg-zoom-compensa,100vw) !important; width:var(--tg-zoom-compensa,100%) !important; max-height:98vh !important; height:98vh !important; border-radius:12px; }
@@ -370,12 +370,28 @@
            lado ficavam espremidos demais para se ler o que se estava a escrever. */
         /* Relatórios Personalizados — arrastar campos para reordenar (drag-and-drop, estilo
            Jotform). A linha alvo ganha destaque enquanto se arrasta outra por cima dela. */
+        /* Relatórios Personalizados — a pré-visualização é um "painel" próprio, ao lado do modal
+           de personalizar (como dois ecrãs lado a lado), não uma coluna dentro do mesmo modal.
+           Os dois ficam mais largos do que altos (horizontais), não altos e estreitos. */
+        #rpPreviewFlutuante {
+            display:none; flex-direction:column; background:#fff; border-radius:20px;
+            box-shadow:0 25px 60px rgba(0,0,0,0.25); width:44vw; max-width:640px; min-width:420px;
+            height:78vh; max-height:78vh; overflow:hidden;
+        }
+        #rpPreviewFlutuante.open { display:flex; }
+        #rpPreviewFlutuante .rp-preview-head { padding:16px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; font-weight:700; color:var(--accent); flex-shrink:0; }
+        #rpPreviewFlutuante iframe { flex:1; width:100%; border:none; background:#f8fafc; }
+        body.dark-mode #rpPreviewFlutuante { background:#1a2436; }
+        @media (max-width:1400px) {
+            #rpPreviewFlutuante { width:40vw; }
+        }
+        @media (max-width:1100px) {
+            .modal-overlay { flex-wrap:wrap; overflow-y:auto; align-items:flex-start; padding-top:20px; }
+            #rpPreviewFlutuante { width:92vw; max-width:none; height:60vh; max-height:60vh; }
+        }
         .rp-campo-linha.rp-drag-over { border-color:var(--accent,#152a52) !important; background:#eef2ff !important; }
         .rp-campo-linha[draggable="true"] { cursor:grab; }
         .rp-campo-linha[draggable="true"]:active { cursor:grabbing; }
-        @media (max-width:900px) {
-            .rp-duas-colunas { flex-direction:column !important; }
-        }
         @media (max-width:520px) {
             .me-item-row { flex-wrap:wrap; }
             .me-item-row .me-item-nome { flex:1 1 100%; }
