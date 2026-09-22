@@ -26825,7 +26825,19 @@ async function salvarAdmin(e) {
         function abrirGestaoRelatoriosPersonalizados() {
             document.getElementById('modalGenericoTitulo').innerHTML = '<i class="fas fa-clipboard-list"></i> Relatórios personalizados por tipo de trabalho';
             const _modalEl = document.querySelector('#modalGenericoOverlay .modal');
-            if (_modalEl) { _modalEl.dataset.maxWidthOriginal = _modalEl.style.maxWidth || ''; _modalEl.style.maxWidth = '920px'; }
+            if (_modalEl) {
+                _modalEl.dataset.maxWidthOriginal = _modalEl.style.maxWidth || '';
+                _modalEl.style.maxWidth = '96vw';
+                _modalEl.style.width = '1500px';
+                _modalEl.style.height = '92vh';
+                _modalEl.style.maxHeight = '92vh';
+                _modalEl.style.display = 'flex';
+                _modalEl.style.flexDirection = 'column';
+            }
+            const _formRp = document.getElementById('modalGenericoForm');
+            if (_formRp) { _formRp.style.flex = '1'; _formRp.style.minHeight = '0'; _formRp.style.display = 'flex'; _formRp.style.flexDirection = 'column'; }
+            const _camposRp = document.getElementById('modalGenericoCampos');
+            if (_camposRp) { _camposRp.style.flex = '1'; _camposRp.style.minHeight = '0'; _camposRp.style.overflow = 'hidden'; }
             _rpRenderListaTipos();
             document.getElementById('modalGenericoForm').onsubmit = ev => { ev.preventDefault(); _fecharModalGenerico(); };
             const _bgRp = document.querySelector('#modalGenericoOverlay .modal-actions .btn-success'); if (_bgRp) { _bgRp.style.display = ''; _bgRp.innerHTML = '<i class="fas fa-check"></i> Finalizar'; }
@@ -26837,7 +26849,7 @@ async function salvarAdmin(e) {
             const tid = _tenantId();
             const tipos = (dados.tiposTrabalhoCustom || []).filter(t => t.adminId === tid);
             document.getElementById('modalGenericoCampos').innerHTML = `
-                <div class="rp-editor-scroll">
+                <div class="rp-editor-scroll" style="height:100%;overflow-y:auto;display:flex;flex-direction:column;">
                     <p class="help-text" style="margin-bottom:12px;">Tipos de trabalho criados por ti. Os tipos base (REX, RBI, etc.) já têm o relatório de especialidade próprio e não aparecem aqui.</p>
                     ${tipos.length ? `
                         <div class="table-wrapper">
@@ -26895,12 +26907,13 @@ async function salvarAdmin(e) {
             if (!tipo) return;
             tipo.campos = tipo.campos || [];
             area.innerHTML = `
-                <div style="border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px;">
-                    <a href="#" onclick="_rpRenderListaTipos();return false;" style="font-size:.82rem;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px;"><i class="fas fa-arrow-left"></i> Voltar à lista</a>
-                    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
-                    <div style="flex:1 1 320px;min-width:280px;">
-                        <div id="rp_lista_campos" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <div style="border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px;flex:1;display:flex;flex-direction:column;min-height:0;">
+                    <a href="#" onclick="_rpRenderListaTipos();return false;" style="font-size:.82rem;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px;flex-shrink:0;"><i class="fas fa-arrow-left"></i> Voltar à lista</a>
+                    <p class="help-text" style="margin:0 0 10px;flex-shrink:0;"><i class="fas fa-arrows-up-down"></i> Arrasta os campos pela pega (⋮⋮) para os reordenar — a pré-visualização à direita atualiza logo.</p>
+                    <div style="display:flex;gap:20px;flex:1;min-height:0;" class="rp-duas-colunas">
+                    <div style="flex:1 1 38%;min-width:300px;display:flex;flex-direction:column;min-height:0;">
+                        <div id="rp_lista_campos" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;overflow-y:auto;flex:1;min-height:0;"></div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
                             <input type="text" id="rp_novo_campo_label" placeholder="Ex: Central testada?" style="flex:1;min-width:160px;" />
                             <select id="rp_novo_campo_tipo" style="width:150px;">
                                 ${CAMPO_TIPOS.map(c => `<option value="${c.valor}">${c.label}</option>`).join('')}
@@ -26908,12 +26921,12 @@ async function salvarAdmin(e) {
                             <button type="button" class="btn btn-sm btn-outline" onclick="_rpAdicionarCampo('${codigo}')"><i class="fas fa-plus"></i> Adicionar campo</button>
                         </div>
                     </div>
-                    <div style="flex:1 1 300px;min-width:260px;max-width:380px;">
-                        <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted,#64748b);font-weight:700;margin-bottom:6px;">
+                    <div style="flex:1 1 62%;min-width:380px;display:flex;flex-direction:column;min-height:0;">
+                        <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted,#64748b);font-weight:700;margin-bottom:6px;flex-shrink:0;">
                             <i class="fas fa-eye"></i> Pré-visualização (o que o técnico vai ver)
                         </div>
-                        <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#f8fafc;">
-                            <iframe id="rp_preview_iframe" style="width:100%;height:62vh;min-height:420px;border:none;background:#fff;"></iframe>
+                        <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#f8fafc;flex:1;min-height:0;">
+                            <iframe id="rp_preview_iframe" style="width:100%;height:100%;border:none;background:#fff;"></iframe>
                         </div>
                     </div>
                     </div>
@@ -26937,17 +26950,40 @@ async function salvarAdmin(e) {
                 iframe.srcdoc = '<p style="font-family:sans-serif;color:#94a3b8;padding:16px;font-size:.85rem;">Adiciona um campo para veres aqui a pré-visualização.</p>';
             }
         }
+        // Estado do arrastar (drag-and-drop) da lista de campos — guarda de que campo se partiu
+        // o arrasto, para saber o que mover quando se largar sobre outra linha.
+        let _rpDragIndice = null;
+        function _rpDragStart(ev, indice) {
+            _rpDragIndice = indice;
+            ev.dataTransfer.effectAllowed = 'move';
+            try { ev.dataTransfer.setData('text/plain', String(indice)); } catch (e) {}
+        }
+        function _rpDragOver(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('rp-drag-over');
+        }
+        async function _rpDrop(ev, codigo, indiceAlvo) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('rp-drag-over');
+            const origem = _rpDragIndice;
+            _rpDragIndice = null;
+            if (origem === null || origem === indiceAlvo) return;
+            const tid = _tenantId();
+            const tipo = (dados.tiposTrabalhoCustom || []).find(t => t.codigo === codigo && t.adminId === tid);
+            if (!tipo || !tipo.campos) return;
+            const [movido] = tipo.campos.splice(origem, 1);
+            tipo.campos.splice(indiceAlvo, 0, movido);
+            try { await guardarDados(dados, ['tiposTrabalhoCustom']); } catch (e) { alert('⚠️ Ficou no ecrã, mas ainda não foi possível confirmar no servidor.'); }
+            _rpAtualizarLista(tipo);
+            _rpAtualizarPreview(tipo);
+        }
         function _rpAtualizarLista(tipo) {
             const lista = document.getElementById('rp_lista_campos');
             if (!lista) return;
             lista.innerHTML = (tipo.campos || []).length ? tipo.campos.map((c, i) => {
                 const info = CAMPO_TIPOS.find(t => t.valor === c.tipo) || CAMPO_TIPOS[0];
-                const ehPrimeiro = i === 0, ehUltimo = i === tipo.campos.length - 1;
-                return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#f8fafc;border-radius:8px;">
-                    <div style="display:flex;flex-direction:column;gap:2px;">
-                        <button type="button" class="btn btn-sm" style="padding:2px 7px;background:${ehPrimeiro ? '#e2e8f0' : '#eef2ff'};color:${ehPrimeiro ? '#94a3b8' : '#3730a3'};" ${ehPrimeiro ? 'disabled' : ''} onclick="_rpMoverCampo('${tipo.codigo}', ${i}, -1)" title="Mover para cima"><i class="fas fa-chevron-up"></i></button>
-                        <button type="button" class="btn btn-sm" style="padding:2px 7px;background:${ehUltimo ? '#e2e8f0' : '#eef2ff'};color:${ehUltimo ? '#94a3b8' : '#3730a3'};" ${ehUltimo ? 'disabled' : ''} onclick="_rpMoverCampo('${tipo.codigo}', ${i}, 1)" title="Mover para baixo"><i class="fas fa-chevron-down"></i></button>
-                    </div>
+                return `<div class="rp-campo-linha" draggable="true" ondragstart="_rpDragStart(event, ${i})" ondragover="_rpDragOver(event)" ondragleave="this.classList.remove('rp-drag-over')" ondrop="_rpDrop(event, '${tipo.codigo}', ${i})" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:2px solid transparent;">
+                    <i class="fas fa-grip-vertical" style="color:#cbd5e1;cursor:grab;" title="Arrasta para reordenar"></i>
                     <i class="fas ${info.icon}" style="color:#64748b;width:18px;"></i>
                     <span style="flex:1;">${escapeHtmlSimples(c.label)}</span>
                     <span class="help-text">${info.label}</span>
@@ -29387,7 +29423,21 @@ window._relPrefill = function(msg){
             const _bg = document.querySelector('#modalGenericoOverlay .modal-actions .btn-success');
             if (_bg) { _bg.style.display = ''; _bg.innerHTML = '<i class="fas fa-save"></i> Guardar'; }
             const _modalEl = document.querySelector('#modalGenericoOverlay .modal');
-            if (_modalEl) _modalEl.style.maxWidth = ''; // repõe a largura padrão do CSS (720px) — os ecrãs "Ver OS"/"Ver Obra" tinham um valor fixo próprio
+            if (_modalEl) {
+                // repõe tudo ao padrão do CSS — o ecrã de Relatórios Personalizados usa um
+                // modal maior e em coluna flex, os outros usos deste modal genérico não devem
+                // herdar isso.
+                _modalEl.style.maxWidth = '';
+                _modalEl.style.width = '';
+                _modalEl.style.height = '';
+                _modalEl.style.maxHeight = '';
+                _modalEl.style.display = '';
+                _modalEl.style.flexDirection = '';
+            }
+            const _formRp = document.getElementById('modalGenericoForm');
+            if (_formRp) { _formRp.style.flex = ''; _formRp.style.minHeight = ''; _formRp.style.display = ''; _formRp.style.flexDirection = ''; }
+            const _camposRp = document.getElementById('modalGenericoCampos');
+            if (_camposRp) { _camposRp.style.flex = ''; _camposRp.style.minHeight = ''; _camposRp.style.overflow = ''; }
         }
         // ---- Arrastar para confirmar (picagem de entrada) ----
         let _peSlideDragging = false, _peSlideConfirmed = false, _peSlideStartX = 0, _peSlideMax = 0;
