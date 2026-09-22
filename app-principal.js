@@ -26827,11 +26827,11 @@ async function salvarAdmin(e) {
             const _modalEl = document.querySelector('#modalGenericoOverlay .modal');
             if (_modalEl) {
                 _modalEl.dataset.maxWidthOriginal = _modalEl.style.maxWidth || '';
-                _modalEl.style.maxWidth = '760px';
-                _modalEl.style.width = '44vw';
-                _modalEl.style.minWidth = '420px';
-                _modalEl.style.height = '78vh';
-                _modalEl.style.maxHeight = '78vh';
+                _modalEl.style.maxWidth = '920px';
+                _modalEl.style.width = '48vw';
+                _modalEl.style.minWidth = '480px';
+                _modalEl.style.height = '90vh';
+                _modalEl.style.maxHeight = '90vh';
                 _modalEl.style.display = 'flex';
                 _modalEl.style.flexDirection = 'column';
             }
@@ -26928,13 +26928,16 @@ async function salvarAdmin(e) {
             area.innerHTML = `
                 <div style="border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px;flex:1;display:flex;flex-direction:column;min-height:0;">
                     <a href="#" onclick="_rpRenderListaTipos();return false;" style="font-size:.82rem;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px;flex-shrink:0;"><i class="fas fa-arrow-left"></i> Voltar à lista</a>
-                    <p class="help-text" style="margin:0 0 10px;flex-shrink:0;"><i class="fas fa-arrows-up-down"></i> Arrasta os campos pela pega (⋮⋮) para os reordenar — o painel de pré-visualização ao lado atualiza logo.</p>
+                    <p class="help-text" style="margin:0 0 10px;flex-shrink:0;"><i class="fas fa-arrows-up-down"></i> Arrasta os campos pela pega (⋮⋮) para os reordenar — o painel de pré-visualização ao lado atualiza logo. Usa "½" para pores dois campos lado a lado na mesma linha.</p>
                     <div id="rp_lista_campos" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;overflow-y:auto;flex:1;min-height:0;"></div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
                         <input type="text" id="rp_novo_campo_label" placeholder="Ex: Central testada?" style="flex:1;min-width:160px;" />
                         <select id="rp_novo_campo_tipo" style="width:150px;">
                             ${CAMPO_TIPOS.map(c => `<option value="${c.valor}">${c.label}</option>`).join('')}
                         </select>
+                        <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;white-space:nowrap;" title="O campo fica só com metade da largura, para partilhar a linha com outro campo de meia largura logo a seguir">
+                            <input type="checkbox" id="rp_novo_campo_metade" style="width:auto;margin:0;" /> Meia largura
+                        </label>
                         <button type="button" class="btn btn-sm btn-outline" onclick="_rpAdicionarCampo('${codigo}')"><i class="fas fa-plus"></i> Adicionar campo</button>
                     </div>
                 </div>
@@ -26990,14 +26993,26 @@ async function salvarAdmin(e) {
             if (!lista) return;
             lista.innerHTML = (tipo.campos || []).length ? tipo.campos.map((c, i) => {
                 const info = CAMPO_TIPOS.find(t => t.valor === c.tipo) || CAMPO_TIPOS[0];
+                const ehMetade = c.largura === 'metade';
                 return `<div class="rp-campo-linha" draggable="true" ondragstart="_rpDragStart(event, ${i})" ondragover="_rpDragOver(event)" ondragleave="this.classList.remove('rp-drag-over')" ondrop="_rpDrop(event, '${tipo.codigo}', ${i})" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:2px solid transparent;">
                     <i class="fas fa-grip-vertical" style="color:#cbd5e1;cursor:grab;" title="Arrasta para reordenar"></i>
                     <i class="fas ${info.icon}" style="color:#64748b;width:18px;"></i>
                     <span style="flex:1;">${escapeHtmlSimples(c.label)}</span>
                     <span class="help-text">${info.label}</span>
+                    ${c.tipo !== 'titulo' ? `<button type="button" class="btn btn-sm" style="background:${ehMetade ? '#dcfce7' : '#eef2ff'};color:${ehMetade ? '#166534' : '#3730a3'};min-width:38px;" onclick="_rpAlternarLargura('${tipo.codigo}', ${i})" title="${ehMetade ? 'Meia largura — clica para pôr a largura toda' : 'Largura toda — clica para meia largura (lado a lado)'}">${ehMetade ? '½' : '1/1'}</button>` : ''}
                     <button type="button" class="btn btn-sm" style="background:#fee2e2;color:#991b1b;" onclick="_rpRemoverCampo('${tipo.codigo}', ${i})"><i class="fas fa-trash"></i></button>
                 </div>`;
             }).join('') : '<p class="help-text">Ainda sem campos — adiciona o primeiro abaixo.</p>';
+        }
+        async function _rpAlternarLargura(codigo, indice) {
+            const tid = _tenantId();
+            const tipo = (dados.tiposTrabalhoCustom || []).find(t => t.codigo === codigo && t.adminId === tid);
+            if (!tipo || !tipo.campos?.[indice]) return;
+            const c = tipo.campos[indice];
+            c.largura = c.largura === 'metade' ? 'completo' : 'metade';
+            try { await guardarDados(dados, ['tiposTrabalhoCustom']); } catch (e) { alert('⚠️ Ficou no ecrã, mas ainda não foi possível confirmar no servidor.'); }
+            _rpAtualizarLista(tipo);
+            _rpAtualizarPreview(tipo);
         }
         async function _rpMoverCampo(codigo, indice, direcao) {
             const tid = _tenantId();
@@ -27025,11 +27040,13 @@ async function salvarAdmin(e) {
             const tipo = (dados.tiposTrabalhoCustom || []).find(t => t.codigo === codigo && t.adminId === tid);
             if (!tipo) return;
             tipo.campos = tipo.campos || [];
-            const novoCampo = { id: gerarId(), label, tipo: tipoCampo };
+            const metade = document.getElementById('rp_novo_campo_metade')?.checked && tipoCampo !== 'titulo';
+            const novoCampo = { id: gerarId(), label, tipo: tipoCampo, largura: metade ? 'metade' : 'completo' };
             if (opcoes) novoCampo.opcoes = opcoes;
             tipo.campos.push(novoCampo);
             try { await guardarDados(dados, ['tiposTrabalhoCustom']); } catch (e) { alert('⚠️ Ficou no ecrã, mas ainda não foi possível confirmar no servidor.'); }
             document.getElementById('rp_novo_campo_label').value = '';
+            const _chkMetade = document.getElementById('rp_novo_campo_metade'); if (_chkMetade) _chkMetade.checked = false;
             _rpAtualizarLista(tipo);
             _rpAtualizarPreview(tipo);
             const sel = document.getElementById('rp_tipo_select');
@@ -27084,17 +27101,30 @@ async function salvarAdmin(e) {
                 return `<input type="text" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;">`;
             };
             // "Título de secção" não é um campo a preencher — é só um separador visual entre
-            // grupos de campos, por isso desenha-se sem rótulo em maiúsculas nem caixa de
-            // resposta, diferente de todos os outros tipos.
-            const camposHtml = (tipoDef.campos || []).map(c => c.tipo === 'titulo'
-                ? `<div class="field-row" style="margin:18px 0 10px;padding-top:10px;border-top:1px solid var(--line);">
-                    <h3 style="margin:0;font-size:1rem;color:var(--accent);text-transform:none;letter-spacing:0;">${escapeHtmlSimples(c.label)}</h3>
-                </div>`
-                : `
-                <div class="field-row">
-                    <label>${escapeHtmlSimples(c.label)}</label>
-                    ${campoHtml(c)}
-                </div>`).join('');
+            // grupos de campos. Campos marcados como "metade" juntam-se em pares na mesma
+            // linha (lado a lado); um campo "completo" ou "titulo" fecha sempre o par pendente
+            // primeiro (nunca fica um campo perdido a meio de outra linha).
+            let camposHtml = '';
+            let _pendente = null;
+            const _flush = () => { if (_pendente) { camposHtml += `<div class="field-row" style="display:flex;gap:14px;">${_pendente}<div style="flex:1;"></div></div>`; _pendente = null; } };
+            (tipoDef.campos || []).forEach(c => {
+                if (c.tipo === 'titulo') {
+                    _flush();
+                    camposHtml += `<div class="field-row" style="margin:18px 0 10px;padding-top:10px;border-top:1px solid var(--line);">
+                        <h3 style="margin:0;font-size:1rem;color:var(--accent);text-transform:none;letter-spacing:0;">${escapeHtmlSimples(c.label)}</h3>
+                    </div>`;
+                    return;
+                }
+                const campoBloco = `<div style="flex:1;min-width:0;"><label>${escapeHtmlSimples(c.label)}</label>${campoHtml(c)}</div>`;
+                if (c.largura === 'metade') {
+                    if (_pendente) { camposHtml += `<div class="field-row" style="display:flex;gap:14px;">${_pendente}${campoBloco}</div>`; _pendente = null; }
+                    else { _pendente = campoBloco; }
+                } else {
+                    _flush();
+                    camposHtml += `<div class="field-row">${campoBloco}</div>`;
+                }
+            });
+            _flush();
             return `<!DOCTYPE html>
 <html lang="pt-PT">
 <head>
