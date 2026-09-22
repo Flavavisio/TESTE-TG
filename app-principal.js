@@ -26823,29 +26823,68 @@ async function salvarAdmin(e) {
             `;
         }
         function abrirGestaoRelatoriosPersonalizados() {
-            const tid = _tenantId();
-            const tipos = (dados.tiposTrabalhoCustom || []).filter(t => t.adminId === tid);
             document.getElementById('modalGenericoTitulo').innerHTML = '<i class="fas fa-clipboard-list"></i> Relatórios personalizados por tipo de trabalho';
             const _modalEl = document.querySelector('#modalGenericoOverlay .modal');
             if (_modalEl) { _modalEl.dataset.maxWidthOriginal = _modalEl.style.maxWidth || ''; _modalEl.style.maxWidth = '920px'; }
+            _rpRenderListaTipos();
+            document.getElementById('modalGenericoForm').onsubmit = ev => { ev.preventDefault(); _fecharModalGenerico(); };
+            const _bgRp = document.querySelector('#modalGenericoOverlay .modal-actions .btn-success'); if (_bgRp) { _bgRp.style.display = ''; _bgRp.innerHTML = '<i class="fas fa-check"></i> Finalizar'; }
+            document.getElementById('modalGenericoOverlay').classList.add('open', 'modal-veros');
+        }
+        // Lista de tipos de trabalho próprios (criados pelo admin), com as três ações por
+        // linha: Personalizar (desenhar os campos do relatório), Editar (mudar o nome) e Apagar.
+        function _rpRenderListaTipos() {
+            const tid = _tenantId();
+            const tipos = (dados.tiposTrabalhoCustom || []).filter(t => t.adminId === tid);
             document.getElementById('modalGenericoCampos').innerHTML = `
                 <div class="rp-editor-scroll">
-                    <p class="help-text" style="margin-bottom:12px;">Escolhe um tipo de trabalho criado por ti para desenhares o formulário que aparece quando um técnico fecha uma OS desse tipo. Os tipos base (REX, RBI, etc.) já têm o relatório de especialidade próprio e não aparecem aqui.</p>
+                    <p class="help-text" style="margin-bottom:12px;">Tipos de trabalho criados por ti. Os tipos base (REX, RBI, etc.) já têm o relatório de especialidade próprio e não aparecem aqui.</p>
                     ${tipos.length ? `
-                        <div class="form-group">
-                            <label>Tipo de trabalho</label>
-                            <select id="rp_tipo_select" onchange="_rpRenderCampos(this.value)">
-                                <option value="">— Escolhe —</option>
-                                ${tipos.map(t => `<option value="${t.codigo}">${escapeHtmlSimples(t.nome)}${(t.campos || []).length ? ` (${t.campos.length} campo${t.campos.length === 1 ? '' : 's'})` : ' — Crie o seu relatório'}</option>`).join('')}
-                            </select>
+                        <div class="table-wrapper">
+                            <table style="width:100%;">
+                                <thead><tr><th>Nome</th><th>Campos</th><th style="text-align:right;">Ações</th></tr></thead>
+                                <tbody>
+                                    ${tipos.map(t => `<tr id="rp_linha_${t.codigo}">
+                                        <td>${escapeHtmlSimples(t.nome)}</td>
+                                        <td>${(t.campos || []).length ? `${t.campos.length} campo${t.campos.length === 1 ? '' : 's'}` : '<span style="color:#b45309;font-weight:600;">Crie o seu relatório</span>'}</td>
+                                        <td style="text-align:right;white-space:nowrap;">
+                                            <button type="button" class="btn btn-sm" style="background:#eef2ff;color:#3730a3;" onclick="_rpRenderCampos('${t.codigo}')" title="Personalizar campos"><i class="fas fa-pen-to-square"></i> Personalizar</button>
+                                            <button type="button" class="btn btn-sm btn-outline" onclick="_rpEditarNome('${t.codigo}')" title="Editar nome"><i class="fas fa-i-cursor"></i> Editar</button>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="_rpApagarTipo('${t.codigo}')" title="Apagar"><i class="fas fa-trash"></i> Apagar</button>
+                                        </td>
+                                    </tr>`).join('')}
+                                </tbody>
+                            </table>
                         </div>
                         <div id="rp_campos_area"></div>
                     ` : `<p class="help-text">Ainda não criaste nenhum tipo de trabalho próprio. Cria um primeiro no campo "Novo tipo de trabalho" ao editar uma OS.</p>`}
                 </div>
             `;
-            document.getElementById('modalGenericoForm').onsubmit = ev => { ev.preventDefault(); _fecharModalGenerico(); };
-            const _bgRp = document.querySelector('#modalGenericoOverlay .modal-actions .btn-success'); if (_bgRp) { _bgRp.style.display = ''; _bgRp.innerHTML = '<i class="fas fa-check"></i> Finalizar'; }
-            document.getElementById('modalGenericoOverlay').classList.add('open', 'modal-veros');
+        }
+        async function _rpEditarNome(codigo) {
+            const tid = _tenantId();
+            const tipo = (dados.tiposTrabalhoCustom || []).find(t => t.codigo === codigo && t.adminId === tid);
+            if (!tipo) return;
+            const novoNome = prompt('Novo nome para este tipo de trabalho:', tipo.nome);
+            if (novoNome === null) return; // cancelou
+            const nomeLimpo = novoNome.trim();
+            if (!nomeLimpo) { alert('O nome não pode ficar vazio.'); return; }
+            tipo.nome = nomeLimpo;
+            guardarDados(dados);
+            _rpRenderListaTipos();
+        }
+        async function _rpApagarTipo(codigo) {
+            const tid = _tenantId();
+            const tipo = (dados.tiposTrabalhoCustom || []).find(t => t.codigo === codigo && t.adminId === tid);
+            if (!tipo) return;
+            const emUso = (dados.servicos || []).filter(s => (s.tiposTrabalho || []).includes(codigo)).length;
+            const aviso = emUso
+                ? `"${tipo.nome}" está a ser usado em ${emUso} Ordem${emUso === 1 ? '' : 's'} de Serviço. Apagá-lo não muda essas OS já criadas, mas deixa de poder ser escolhido em OS novas, e perdes o relatório personalizado desenhado para ele.\n\nTens a certeza que queres apagar?`
+                : `Vais apagar "${tipo.nome}" e o relatório personalizado desenhado para ele. Não é possível desfazer.\n\nTens a certeza?`;
+            if (!confirm(aviso)) return;
+            dados.tiposTrabalhoCustom = (dados.tiposTrabalhoCustom || []).filter(t => t.codigo !== codigo);
+            guardarDados(dados);
+            _rpRenderListaTipos();
         }
         function _rpRenderCampos(codigo) {
             const area = document.getElementById('rp_campos_area');
@@ -26856,7 +26895,9 @@ async function salvarAdmin(e) {
             if (!tipo) return;
             tipo.campos = tipo.campos || [];
             area.innerHTML = `
-                <div style="border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+                <div style="border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px;">
+                    <a href="#" onclick="_rpRenderListaTipos();return false;" style="font-size:.82rem;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px;"><i class="fas fa-arrow-left"></i> Voltar à lista</a>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
                     <div style="flex:1 1 320px;min-width:280px;">
                         <div id="rp_lista_campos" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -26874,6 +26915,7 @@ async function salvarAdmin(e) {
                         <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#f8fafc;">
                             <iframe id="rp_preview_iframe" style="width:100%;height:62vh;min-height:420px;border:none;background:#fff;"></iframe>
                         </div>
+                    </div>
                     </div>
                 </div>
             `;
@@ -30980,7 +31022,7 @@ window._relPrefill = function(msg){
                         const ic = c.querySelector('.icon i')?.className || 'fas fa-circle';
                         const nome = c.querySelector('.info h3')?.textContent?.trim() || sec;
                         const href = sec === 'crm' ? 'TOTALGEST_CRM.html' : (sec === 'assistencias' ? 'TOTALGEST_ASSIST.html' : (sec === 'rondas' ? 'TOTALGEST_RONDAS.html' : null));
-                        const onclickAttr = sec === 'crm' ? 'return _abrirCRM(event)' : (sec === 'assistencias' ? 'return _abrirAssist(event)' : (sec === 'rondas' ? 'return _abrirRondas(event)' : `abrirSecao('${sec}')`));
+                        const onclickAttr = sec === 'crm' ? 'return _abrirCRM(event)' : (sec === 'assistencias' ? 'return _abrirAssist(event)' : (sec === 'rondas' ? 'return _abrirRondas(event)' : (sec === 'relatorios-personalizados' ? 'abrirGestaoRelatoriosPersonalizados()' : `abrirSecao('${sec}')`)));
                         const atributosExtra = href ? `href="${href}" target="_blank" rel="noopener"` : '';
                         html += `<a class="tg-nav-item" data-secao="${sec}" ${atributosExtra} onclick="${onclickAttr}"><i class="${ic}"></i><span>${nome}</span></a>`;
                     });
@@ -31001,7 +31043,7 @@ window._relPrefill = function(msg){
                         // lateral tem de ser um <a href> a sério, tal como o card correspondente
                         // no ecrã principal, e não um simples onclick sem destino nenhum.
                         const href = sec === 'crm' ? 'TOTALGEST_CRM.html' : (sec === 'assistencias' ? 'TOTALGEST_ASSIST.html' : (sec === 'rondas' ? 'TOTALGEST_RONDAS.html' : null));
-                        const onclickAttr = sec === 'crm' ? 'return _abrirCRM(event)' : (sec === 'assistencias' ? 'return _abrirAssist(event)' : (sec === 'rondas' ? 'return _abrirRondas(event)' : `abrirSecao('${sec}')`));
+                        const onclickAttr = sec === 'crm' ? 'return _abrirCRM(event)' : (sec === 'assistencias' ? 'return _abrirAssist(event)' : (sec === 'rondas' ? 'return _abrirRondas(event)' : (sec === 'relatorios-personalizados' ? 'abrirGestaoRelatoriosPersonalizados()' : `abrirSecao('${sec}')`)));
                         const atributosExtra = href ? `href="${href}" target="_blank" rel="noopener"` : '';
                         html += `<a class="tg-nav-item" data-secao="${sec}" ${atributosExtra} onclick="${onclickAttr}"><i class="${ic}"></i><span>${nome}</span></a>`;
                     });
