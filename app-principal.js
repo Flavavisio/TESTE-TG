@@ -23948,9 +23948,8 @@ async function salvarAdmin(e) {
                                     <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                                         <input type="text" id="s_novo_tipo_input" placeholder="Novo tipo de trabalho..." style="max-width:220px;" />
                                         <button type="button" class="btn btn-sm btn-outline" onclick="_sAdicionarTipoTrabalho()"><i class="fas fa-plus"></i> Adicionar</button>
-                                        <button type="button" class="btn btn-sm" style="background:#eef2ff;color:#3730a3;" onclick="abrirGestaoRelatoriosPersonalizados()"><i class="fas fa-clipboard-list"></i> Relatórios personalizados por tipo</button>
                                     </div>
-                                    <div class="help-text">Os tipos REX, RBI, RSI, RCM, RIE, RCP, CCTV e Intrusão geram automaticamente um relatório de especialidade a preencher quando a OS for concluída.</div>
+                                    <div class="help-text">Os tipos REX, RBI, RSI, RCM, RIE, RCP, CCTV e Intrusão geram automaticamente um relatório de especialidade a preencher quando a OS for concluída. Para os outros tipos, desenha o relatório em Obras e Serviços → Relatórios Personalizados.</div>
                                 </div>
                             </div>
                         </div>
@@ -26704,6 +26703,10 @@ async function salvarAdmin(e) {
             { valor: 'numero', label: 'Número', icon: 'fa-hashtag' },
             { valor: 'checkbox', label: 'Sim / Não', icon: 'fa-toggle-on' },
             { valor: 'checklist', label: 'Passo do checklist (obrigatório)', icon: 'fa-list-check' },
+            { valor: 'lista', label: 'Lista de escolha', icon: 'fa-caret-down' },
+            { valor: 'data', label: 'Data', icon: 'fa-calendar-day' },
+            { valor: 'hora', label: 'Hora', icon: 'fa-clock' },
+            { valor: 'titulo', label: 'Título de secção', icon: 'fa-heading' },
         ];
         // Relatório de Km Percorridos (estimados) — só admin/subadmin. Junta os registos de
         // dados.kmViagens (capturados ao tocar em "Navegar" nas OS) por técnico, com total do
@@ -26924,12 +26927,21 @@ async function salvarAdmin(e) {
         async function _rpAdicionarCampo(codigo) {
             const label = document.getElementById('rp_novo_campo_label').value.trim();
             const tipoCampo = document.getElementById('rp_novo_campo_tipo').value;
-            if (!label) { alert('Escreve o nome do campo.'); return; }
+            if (!label) { alert('Escreve o nome do campo (ou, para um Título de secção, o texto do título).'); return; }
+            let opcoes = null;
+            if (tipoCampo === 'lista') {
+                const opcoesTxto = prompt('Escreve as opções da lista, separadas por vírgula (ex: Bom, Razoável, Mau):');
+                if (opcoesTxto === null) return; // cancelou
+                opcoes = opcoesTxto.split(',').map(o => o.trim()).filter(Boolean);
+                if (!opcoes.length) { alert('Tens de escrever pelo menos uma opção.'); return; }
+            }
             const tid = _tenantId();
             const tipo = (dados.tiposTrabalhoCustom || []).find(t => t.codigo === codigo && t.adminId === tid);
             if (!tipo) return;
             tipo.campos = tipo.campos || [];
-            tipo.campos.push({ id: gerarId(), label, tipo: tipoCampo });
+            const novoCampo = { id: gerarId(), label, tipo: tipoCampo };
+            if (opcoes) novoCampo.opcoes = opcoes;
+            tipo.campos.push(novoCampo);
             try { await guardarDados(dados, ['tiposTrabalhoCustom']); } catch (e) { alert('⚠️ Ficou no ecrã, mas ainda não foi possível confirmar no servidor.'); }
             document.getElementById('rp_novo_campo_label').value = '';
             _rpAtualizarLista(tipo);
@@ -26971,6 +26983,12 @@ async function salvarAdmin(e) {
                 const idAttr = `id="${c.id}"`;
                 if (c.tipo === 'textarea') return `<textarea ${idAttr} style="width:100%;min-height:70px;font-family:inherit;font-size:.9rem;padding:8px;border:1px solid var(--line);border-radius:6px;"></textarea>`;
                 if (c.tipo === 'numero') return `<input type="number" step="0.01" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;">`;
+                if (c.tipo === 'data') return `<input type="date" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;">`;
+                if (c.tipo === 'hora') return `<input type="time" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;">`;
+                if (c.tipo === 'lista') return `<select ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;background:#fff;">
+                    <option value="">— Escolhe —</option>
+                    ${(c.opcoes || []).map(o => `<option value="${escapeHtmlSimples(o)}">${escapeHtmlSimples(o)}</option>`).join('')}
+                </select>`;
                 if (c.tipo === 'checkbox') return `<div class="campo-sim-nao" data-simnao="${c.id}">
                     <input type="hidden" ${idAttr} value="">
                     <button type="button" class="btn-simnao" data-val="sim" onclick="_relSimNao('${c.id}','sim')">Sim</button>
@@ -26979,7 +26997,14 @@ async function salvarAdmin(e) {
                 if (c.tipo === 'checklist') return `<label style="display:flex;align-items:center;gap:8px;font-size:.88rem;"><input type="checkbox" ${idAttr} style="width:18px;height:18px;"> Verificado / concluído</label>`;
                 return `<input type="text" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;">`;
             };
-            const camposHtml = (tipoDef.campos || []).map(c => `
+            // "Título de secção" não é um campo a preencher — é só um separador visual entre
+            // grupos de campos, por isso desenha-se sem rótulo em maiúsculas nem caixa de
+            // resposta, diferente de todos os outros tipos.
+            const camposHtml = (tipoDef.campos || []).map(c => c.tipo === 'titulo'
+                ? `<div class="field-row" style="margin:18px 0 10px;padding-top:10px;border-top:1px solid var(--line);">
+                    <h3 style="margin:0;font-size:1rem;color:var(--accent);text-transform:none;letter-spacing:0;">${escapeHtmlSimples(c.label)}</h3>
+                </div>`
+                : `
                 <div class="field-row">
                     <label>${escapeHtmlSimples(c.label)}</label>
                     ${campoHtml(c)}
@@ -27192,6 +27217,7 @@ window._relPrefill = function(msg){
   document.getElementById('_relBtnRascunho').addEventListener('click', function(){
     document.querySelectorAll('input, select, textarea').forEach(el=>{
       if (el.type === 'checkbox' || el.type === 'radio') { if (el.checked) el.setAttribute('checked','checked'); else el.removeAttribute('checked'); }
+      else if (el.tagName === 'SELECT') { [...el.options].forEach(o=>o.removeAttribute('selected')); if (el.selectedOptions[0]) el.selectedOptions[0].setAttribute('selected','selected'); }
       else if (el.tagName === 'TEXTAREA') { el.textContent = el.value; }
       else { el.setAttribute('value', el.value); }
     });
@@ -27213,6 +27239,7 @@ window._relPrefill = function(msg){
     }
     document.querySelectorAll('input, select, textarea').forEach(el=>{
       if (el.type === 'checkbox' || el.type === 'radio') { if (el.checked) el.setAttribute('checked','checked'); else el.removeAttribute('checked'); }
+      else if (el.tagName === 'SELECT') { [...el.options].forEach(o=>o.removeAttribute('selected')); if (el.selectedOptions[0]) el.selectedOptions[0].setAttribute('selected','selected'); }
       else if (el.tagName === 'TEXTAREA') { el.textContent = el.value; }
       else { el.setAttribute('value', el.value); }
     });
