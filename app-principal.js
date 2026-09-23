@@ -253,8 +253,8 @@
         const M = {
             administradores: {
                 tabela: 'administradores',
-                from: r => ({ id: r.id, nome: r.nome, email: r.email, empresa: r.empresa || '', nif: r.nif || null, logo: r.logo || null, licencaFeedback: r.licenca_feedback || null, contratosPlano: r.contratos_plano || null, contratosExpiracao: isoToMs(r.contratos_expiracao), frotaPlano: r.frota_plano || null, frotaExpiracao: isoToMs(r.frota_expiracao), armazemPlano: r.armazem_plano || null, armazemExpiracao: isoToMs(r.armazem_expiracao), portalPlano: r.portal_plano || null, portalExpiracao: isoToMs(r.portal_expiracao), crmPlano: r.crm_plano || null, crmExpiracao: isoToMs(r.crm_expiracao), assistPlano: r.assist_plano || null, assistExpiracao: isoToMs(r.assist_expiracao), erpPlano: r.erp_plano || null, erpExpiracao: isoToMs(r.erp_expiracao), notificacoesPlano: r.notificacoes_plano || null, notificacoesExpiracao: isoToMs(r.notificacoes_expiracao), dadosBancarios: r.dados_bancarios || null, integracaoFaturacao: r.integracao_faturacao || null, ativo: r.ativo, mudarSenha: r.mudar_senha === true, ultimoLogin: isoToMs(r.ultimo_login), ultimaAtividade: isoToMs(r.ultima_atividade), mostrarEstadoOnline: r.mostrar_estado_online === true, layout: r.layout || null, tiposEquipamento: r.tipos_equipamento || [], logo: r.logo, notificarAprovacao: r.notificar_aprovacao === true, numeroRegistoPrevio: r.numero_registo_previo || null, dataRegistoPrevio: r.data_registo_previo || null, numeroAnepc: r.numero_anepc || null, dataAnepc: r.data_anepc || null, anepcValidade: r.anepc_validade || null, registoPrevioValidade: r.registo_previo_validade || null, corCorporativa: r.cor_corporativa || null, favoritos: Array.isArray(r.favoritos) ? r.favoritos : [], ivaPeriodicidade: r.iva_periodicidade || 'mensal', irsPeriodicidade: r.irs_periodicidade || 'semestral', painelTvAtivo: r.painel_tv_ativo === true, descricoesRapidasOS: Array.isArray(r.descricoes_rapidas_os) ? r.descricoes_rapidas_os : ['Instalação', 'Manutenção', 'Visita', 'Formação'], horaEntradaHabitual: r.hora_entrada_habitual || '09:00', toleranciaAtrasoMin: r.tolerancia_atraso_min != null ? r.tolerancia_atraso_min : 15, certificadoraLogo: r.certificadora_logo || null, ehDistribuidor: r.eh_distribuidor === true, distribuidorDesconto: r.distribuidor_desconto != null ? Number(r.distribuidor_desconto) : null, distribuidorId: r.distribuidor_id || null, precoDistribuidorCobrado: r.preco_distribuidor_cobrado != null ? Number(r.preco_distribuidor_cobrado) : null, distribuidorPagamentoPrazo: isoToMs(r.distribuidor_pagamento_prazo), precoFundador: r.preco_fundador === true, obrasAvancadoAtivo: r.obras_avancado_ativo === true, expressAtivo: r.express_ativo === true, obrasChecklistItens: Array.isArray(r.obras_checklist_itens) ? r.obras_checklist_itens : [], checklistEntradaItens: Array.isArray(r.checklist_entrada_itens) ? r.checklist_entrada_itens : [], osModoWizard: r.os_modo_wizard === true, contratoModoWizard: r.contrato_modo_wizard === true, kmPontoGeralAtivo: r.km_ponto_geral_ativo === true, kmPorOsAtivo: r.km_por_os_ativo === true, segurancaAtivo: r.seguranca_ativo === true, segurosAtivo: r.seguros_ativo === true, shstAtivo: r.shst_ativo === true, materiaisEntregaAtivo: r.materiais_entrega_ativo === true, areasNegocio: Array.isArray(r.areas_negocio) ? r.areas_negocio : null, onboardingComoTrabalha: Array.isArray(r.onboarding_como_trabalha) ? r.onboarding_como_trabalha : [], modulosAtivos: Array.isArray(r.modulos_ativos) ? r.modulos_ativos : null, onboardingAtividadeConcluido: r.onboarding_atividade_concluido === true, lembretePagamentoEm: isoToMs(r.lembrete_pagamento_em), concelho: r.concelho || null, contratosDemoDias: r.contratos_demo_dias || null, frotaDemoDias: r.frota_demo_dias || null, armazemDemoDias: r.armazem_demo_dias || null, crmDemoDias: r.crm_demo_dias || null, erpDemoDias: r.erp_demo_dias || null, rondasPlano: r.rondas_plano || null, rondasExpiracao: isoToMs(r.rondas_expiracao), rondasDemoDias: r.rondas_demo_dias || null, usoSecoes: r.uso_secoes ? (typeof r.uso_secoes === 'string' ? JSON.parse(r.uso_secoes) : r.uso_secoes) : {}, usoSecoesUltima: isoToMs(r.uso_secoes_ultima), ultimaSincronizacaoMoloniArtigos: isoToMs(r.ultima_sincronizacao_moloni_artigos), licencaFaseAvisada: r.licenca_fase_avisada || null, dataCriacao: isoToMs(r.data_criacao) }),
-                to:   o => ({ id: o.id, nome: o.nome, email: o.email, senha: o.senha, empresa: o.empresa || null, nif: o.nif || null, logo: o.logo || null, licenca_feedback: o.licencaFeedback || null, contratos_plano: o.contratosPlano || null, contratos_expiracao: msToISO(o.contratosExpiracao), frota_plano: o.frotaPlano || null, frota_expiracao: msToISO(o.frotaExpiracao), armazem_plano: o.armazemPlano || null, armazem_expiracao: msToISO(o.armazemExpiracao), portal_plano: o.portalPlano || null, portal_expiracao: msToISO(o.portalExpiracao), crm_plano: o.crmPlano || null, crm_expiracao: msToISO(o.crmExpiracao), assist_plano: o.assistPlano || null, assist_expiracao: msToISO(o.assistExpiracao), erp_plano: o.erpPlano || null, erp_expiracao: msToISO(o.erpExpiracao), notificacoes_plano: o.notificacoesPlano || null, notificacoes_expiracao: msToISO(o.notificacoesExpiracao), dados_bancarios: o.dadosBancarios || null, integracao_faturacao: o.integracaoFaturacao || null, ativo: o.ativo !== false, mudar_senha: o.mudarSenha === true, ultimo_login: o.ultimoLogin ? msToISO(o.ultimoLogin) : null, ultima_atividade: o.ultimaAtividade ? msToISO(o.ultimaAtividade) : null, mostrar_estado_online: o.mostrarEstadoOnline === true, layout: o.layout || null, tipos_equipamento: o.tiposEquipamento || [], logo: o.logo || null, notificar_aprovacao: o.notificarAprovacao === true, numero_registo_previo: o.numeroRegistoPrevio || null, data_registo_previo: o.dataRegistoPrevio || null, numero_anepc: o.numeroAnepc || null, data_anepc: o.dataAnepc || null, anepc_validade: o.anepcValidade || null, registo_previo_validade: o.registoPrevioValidade || null, cor_corporativa: o.corCorporativa || null, favoritos: o.favoritos || [], iva_periodicidade: o.ivaPeriodicidade || 'mensal', irs_periodicidade: o.irsPeriodicidade || 'semestral', painel_tv_ativo: o.painelTvAtivo === true, descricoes_rapidas_os: o.descricoesRapidasOS || null, hora_entrada_habitual: o.horaEntradaHabitual || '09:00', tolerancia_atraso_min: o.toleranciaAtrasoMin != null ? o.toleranciaAtrasoMin : 15, certificadora_logo: o.certificadoraLogo || null, eh_distribuidor: o.ehDistribuidor === true, distribuidor_desconto: o.distribuidorDesconto ?? null, distribuidor_id: o.distribuidorId || null, preco_distribuidor_cobrado: o.precoDistribuidorCobrado ?? null, distribuidor_pagamento_prazo: o.distribuidorPagamentoPrazo ? msToISO(o.distribuidorPagamentoPrazo) : null, preco_fundador: o.precoFundador === true, obras_avancado_ativo: o.obrasAvancadoAtivo === true, express_ativo: o.expressAtivo === true, obras_checklist_itens: o.obrasChecklistItens || [], checklist_entrada_itens: o.checklistEntradaItens || [], os_modo_wizard: o.osModoWizard === true, contrato_modo_wizard: o.contratoModoWizard === true, km_ponto_geral_ativo: o.kmPontoGeralAtivo === true, km_por_os_ativo: o.kmPorOsAtivo === true, seguranca_ativo: o.segurancaAtivo === true, seguros_ativo: o.segurosAtivo === true, shst_ativo: o.shstAtivo === true, materiais_entrega_ativo: o.materiaisEntregaAtivo === true, areas_negocio: o.areasNegocio || null, onboarding_como_trabalha: o.onboardingComoTrabalha || [], modulos_ativos: o.modulosAtivos || null, onboarding_atividade_concluido: o.onboardingAtividadeConcluido === true, lembrete_pagamento_em: o.lembretePagamentoEm ? msToISO(o.lembretePagamentoEm) : null, concelho: o.concelho || null, contratos_demo_dias: o.contratosDemoDias || null, frota_demo_dias: o.frotaDemoDias || null, armazem_demo_dias: o.armazemDemoDias || null, crm_demo_dias: o.crmDemoDias || null, erp_demo_dias: o.erpDemoDias || null, rondas_plano: o.rondasPlano || null, rondas_expiracao: msToISO(o.rondasExpiracao), rondas_demo_dias: o.rondasDemoDias || null, uso_secoes: JSON.stringify(o.usoSecoes || {}), uso_secoes_ultima: o.usoSecoesUltima ? msToISO(o.usoSecoesUltima) : null, ultima_sincronizacao_moloni_artigos: o.ultimaSincronizacaoMoloniArtigos ? msToISO(o.ultimaSincronizacaoMoloniArtigos) : null, licenca_fase_avisada: o.licencaFaseAvisada || null, data_criacao: msToISO(o.dataCriacao) })
+                from: r => ({ id: r.id, nome: r.nome, email: r.email, empresa: r.empresa || '', nif: r.nif || null, logo: r.logo || null, licencaFeedback: r.licenca_feedback || null, contratosPlano: r.contratos_plano || null, contratosExpiracao: isoToMs(r.contratos_expiracao), frotaPlano: r.frota_plano || null, frotaExpiracao: isoToMs(r.frota_expiracao), armazemPlano: r.armazem_plano || null, armazemExpiracao: isoToMs(r.armazem_expiracao), portalPlano: r.portal_plano || null, portalExpiracao: isoToMs(r.portal_expiracao), crmPlano: r.crm_plano || null, crmExpiracao: isoToMs(r.crm_expiracao), assistPlano: r.assist_plano || null, assistExpiracao: isoToMs(r.assist_expiracao), erpPlano: r.erp_plano || null, erpExpiracao: isoToMs(r.erp_expiracao), notificacoesPlano: r.notificacoes_plano || null, notificacoesExpiracao: isoToMs(r.notificacoes_expiracao), dadosBancarios: r.dados_bancarios || null, integracaoFaturacao: r.integracao_faturacao || null, ativo: r.ativo, mudarSenha: r.mudar_senha === true, ultimoLogin: isoToMs(r.ultimo_login), ultimaAtividade: isoToMs(r.ultima_atividade), mostrarEstadoOnline: r.mostrar_estado_online === true, layout: r.layout || null, tiposEquipamento: r.tipos_equipamento || [], logo: r.logo, notificarAprovacao: r.notificar_aprovacao === true, numeroRegistoPrevio: r.numero_registo_previo || null, dataRegistoPrevio: r.data_registo_previo || null, numeroAnepc: r.numero_anepc || null, dataAnepc: r.data_anepc || null, anepcValidade: r.anepc_validade || null, registoPrevioValidade: r.registo_previo_validade || null, corCorporativa: r.cor_corporativa || null, favoritos: Array.isArray(r.favoritos) ? r.favoritos : [], ivaPeriodicidade: r.iva_periodicidade || 'mensal', irsPeriodicidade: r.irs_periodicidade || 'semestral', painelTvAtivo: r.painel_tv_ativo === true, descricoesRapidasOS: Array.isArray(r.descricoes_rapidas_os) ? r.descricoes_rapidas_os : ['Instalação', 'Manutenção', 'Visita', 'Formação'], horaEntradaHabitual: r.hora_entrada_habitual || '09:00', toleranciaAtrasoMin: r.tolerancia_atraso_min != null ? r.tolerancia_atraso_min : 15, certificadoraLogo: r.certificadora_logo || null, ehDistribuidor: r.eh_distribuidor === true, distribuidorDesconto: r.distribuidor_desconto != null ? Number(r.distribuidor_desconto) : null, distribuidorId: r.distribuidor_id || null, precoDistribuidorCobrado: r.preco_distribuidor_cobrado != null ? Number(r.preco_distribuidor_cobrado) : null, distribuidorPagamentoPrazo: isoToMs(r.distribuidor_pagamento_prazo), precoFundador: r.preco_fundador === true, obrasAvancadoAtivo: r.obras_avancado_ativo === true, expressAtivo: r.express_ativo === true, obrasChecklistItens: Array.isArray(r.obras_checklist_itens) ? r.obras_checklist_itens : [], checklistEntradaItens: Array.isArray(r.checklist_entrada_itens) ? r.checklist_entrada_itens : [], osModoWizard: r.os_modo_wizard === true, contratoModoWizard: r.contrato_modo_wizard === true, kmPontoGeralAtivo: r.km_ponto_geral_ativo === true, kmPorOsAtivo: r.km_por_os_ativo === true, segurancaAtivo: r.seguranca_ativo === true, segurosAtivo: r.seguros_ativo === true, shstAtivo: r.shst_ativo === true, materiaisEntregaAtivo: r.materiais_entrega_ativo === true, packAtual: r.pack_atual || null, packEscalao: r.pack_escalao || null, packBlocos: r.pack_blocos || 0, areasNegocio: Array.isArray(r.areas_negocio) ? r.areas_negocio : null, onboardingComoTrabalha: Array.isArray(r.onboarding_como_trabalha) ? r.onboarding_como_trabalha : [], modulosAtivos: Array.isArray(r.modulos_ativos) ? r.modulos_ativos : null, onboardingAtividadeConcluido: r.onboarding_atividade_concluido === true, lembretePagamentoEm: isoToMs(r.lembrete_pagamento_em), concelho: r.concelho || null, contratosDemoDias: r.contratos_demo_dias || null, frotaDemoDias: r.frota_demo_dias || null, armazemDemoDias: r.armazem_demo_dias || null, crmDemoDias: r.crm_demo_dias || null, erpDemoDias: r.erp_demo_dias || null, rondasPlano: r.rondas_plano || null, rondasExpiracao: isoToMs(r.rondas_expiracao), rondasDemoDias: r.rondas_demo_dias || null, usoSecoes: r.uso_secoes ? (typeof r.uso_secoes === 'string' ? JSON.parse(r.uso_secoes) : r.uso_secoes) : {}, usoSecoesUltima: isoToMs(r.uso_secoes_ultima), ultimaSincronizacaoMoloniArtigos: isoToMs(r.ultima_sincronizacao_moloni_artigos), licencaFaseAvisada: r.licenca_fase_avisada || null, dataCriacao: isoToMs(r.data_criacao) }),
+                to:   o => ({ id: o.id, nome: o.nome, email: o.email, senha: o.senha, empresa: o.empresa || null, nif: o.nif || null, logo: o.logo || null, licenca_feedback: o.licencaFeedback || null, contratos_plano: o.contratosPlano || null, contratos_expiracao: msToISO(o.contratosExpiracao), frota_plano: o.frotaPlano || null, frota_expiracao: msToISO(o.frotaExpiracao), armazem_plano: o.armazemPlano || null, armazem_expiracao: msToISO(o.armazemExpiracao), portal_plano: o.portalPlano || null, portal_expiracao: msToISO(o.portalExpiracao), crm_plano: o.crmPlano || null, crm_expiracao: msToISO(o.crmExpiracao), assist_plano: o.assistPlano || null, assist_expiracao: msToISO(o.assistExpiracao), erp_plano: o.erpPlano || null, erp_expiracao: msToISO(o.erpExpiracao), notificacoes_plano: o.notificacoesPlano || null, notificacoes_expiracao: msToISO(o.notificacoesExpiracao), dados_bancarios: o.dadosBancarios || null, integracao_faturacao: o.integracaoFaturacao || null, ativo: o.ativo !== false, mudar_senha: o.mudarSenha === true, ultimo_login: o.ultimoLogin ? msToISO(o.ultimoLogin) : null, ultima_atividade: o.ultimaAtividade ? msToISO(o.ultimaAtividade) : null, mostrar_estado_online: o.mostrarEstadoOnline === true, layout: o.layout || null, tipos_equipamento: o.tiposEquipamento || [], logo: o.logo || null, notificar_aprovacao: o.notificarAprovacao === true, numero_registo_previo: o.numeroRegistoPrevio || null, data_registo_previo: o.dataRegistoPrevio || null, numero_anepc: o.numeroAnepc || null, data_anepc: o.dataAnepc || null, anepc_validade: o.anepcValidade || null, registo_previo_validade: o.registoPrevioValidade || null, cor_corporativa: o.corCorporativa || null, favoritos: o.favoritos || [], iva_periodicidade: o.ivaPeriodicidade || 'mensal', irs_periodicidade: o.irsPeriodicidade || 'semestral', painel_tv_ativo: o.painelTvAtivo === true, descricoes_rapidas_os: o.descricoesRapidasOS || null, hora_entrada_habitual: o.horaEntradaHabitual || '09:00', tolerancia_atraso_min: o.toleranciaAtrasoMin != null ? o.toleranciaAtrasoMin : 15, certificadora_logo: o.certificadoraLogo || null, eh_distribuidor: o.ehDistribuidor === true, distribuidor_desconto: o.distribuidorDesconto ?? null, distribuidor_id: o.distribuidorId || null, preco_distribuidor_cobrado: o.precoDistribuidorCobrado ?? null, distribuidor_pagamento_prazo: o.distribuidorPagamentoPrazo ? msToISO(o.distribuidorPagamentoPrazo) : null, preco_fundador: o.precoFundador === true, obras_avancado_ativo: o.obrasAvancadoAtivo === true, express_ativo: o.expressAtivo === true, obras_checklist_itens: o.obrasChecklistItens || [], checklist_entrada_itens: o.checklistEntradaItens || [], os_modo_wizard: o.osModoWizard === true, contrato_modo_wizard: o.contratoModoWizard === true, km_ponto_geral_ativo: o.kmPontoGeralAtivo === true, km_por_os_ativo: o.kmPorOsAtivo === true, seguranca_ativo: o.segurancaAtivo === true, seguros_ativo: o.segurosAtivo === true, shst_ativo: o.shstAtivo === true, materiais_entrega_ativo: o.materiaisEntregaAtivo === true, pack_atual: o.packAtual || null, pack_escalao: o.packEscalao || null, pack_blocos: o.packBlocos || 0, areas_negocio: o.areasNegocio || null, onboarding_como_trabalha: o.onboardingComoTrabalha || [], modulos_ativos: o.modulosAtivos || null, onboarding_atividade_concluido: o.onboardingAtividadeConcluido === true, lembrete_pagamento_em: o.lembretePagamentoEm ? msToISO(o.lembretePagamentoEm) : null, concelho: o.concelho || null, contratos_demo_dias: o.contratosDemoDias || null, frota_demo_dias: o.frotaDemoDias || null, armazem_demo_dias: o.armazemDemoDias || null, crm_demo_dias: o.crmDemoDias || null, erp_demo_dias: o.erpDemoDias || null, rondas_plano: o.rondasPlano || null, rondas_expiracao: msToISO(o.rondasExpiracao), rondas_demo_dias: o.rondasDemoDias || null, uso_secoes: JSON.stringify(o.usoSecoes || {}), uso_secoes_ultima: o.usoSecoesUltima ? msToISO(o.usoSecoesUltima) : null, ultima_sincronizacao_moloni_artigos: o.ultimaSincronizacaoMoloniArtigos ? msToISO(o.ultimaSincronizacaoMoloniArtigos) : null, licenca_fase_avisada: o.licencaFaseAvisada || null, data_criacao: msToISO(o.dataCriacao) })
             },
             funcionarios: {
                 tabela: 'funcionarios',
@@ -552,8 +552,8 @@
         // ordem segura de FKs para upsert; deletes fazem-se na ordem inversa
         const ORDEM = ['administradores','veiculos','funcionarios','encarregados','clientes','locais','equipamentos','servicos','folhasObra','requisicoes','ponto','pedidos','pedidosRenovacao','ajudas','notificacoes','contratos','registosManutencao','veiculoDocumentos','veiculoIntervencoes','veiculoSinistros','fornecedores','obras','artigos','armazens','encomendas','encomendaItens','movimentosStock','obraMateriais','obraDocumentos','obraPastasDocumentos','obraPontoLonga','autosMedicao','categorias','unidadesArtigo','auditoria','historicoLicencas','alertasGeofence','tiposTrabalhoCustom','tiposFaltaCustom','configSeriesRelatorio','relatoriosEspecialidade','despesasMensais','creditosBancarios','leads','oportunidades','propostas','atividadesComerciais','assistencias','garantias','referencias','ferramentas','levantamentosFerramentas','artigoNumerosSerie','devolucoesObra','devolucaoObraItens','materiaisEntrega'];
 
-        const licToRow = (adminId, l) => ({ admin_id: adminId, codigo: l.codigo, plano: l.plano, data_inicio: msToISO(l.dataInicio), data_expiracao: msToISO(l.dataExpiracao), dias: l.dias, max_funcionarios: l.maxFuncionarios, ativa: l.ativa !== false, aguarda_pagamento: l.aguardaPagamento === true });
-        const licFromRow = (r) => ({ codigo: r.codigo, plano: r.plano, dataInicio: isoToMs(r.data_inicio), dataExpiracao: isoToMs(r.data_expiracao), dias: r.dias, maxFuncionarios: r.max_funcionarios, ativa: r.ativa, aguardaPagamento: r.aguarda_pagamento === true });
+        const licToRow = (adminId, l) => ({ admin_id: adminId, codigo: l.codigo, plano: l.plano, data_inicio: msToISO(l.dataInicio), data_expiracao: msToISO(l.dataExpiracao), dias: l.dias, max_funcionarios: l.maxFuncionarios, ativa: l.ativa !== false, aguarda_pagamento: l.aguardaPagamento === true, pendente_24h: l.pendente24h === true, limite_24h: msToISO(l.limite24hMs) });
+        const licFromRow = (r) => ({ codigo: r.codigo, plano: r.plano, dataInicio: isoToMs(r.data_inicio), dataExpiracao: isoToMs(r.data_expiracao), dias: r.dias, maxFuncionarios: r.max_funcionarios, ativa: r.ativa, aguardaPagamento: r.aguarda_pagamento === true, pendente24h: r.pendente_24h === true, limite24hMs: isoToMs(r.limite_24h) });
 
         // snapshots do último estado sincronizado (id -> JSON da linha)
         let _snap = {};       // _snap[col] = Map(id -> json)
@@ -2439,6 +2439,24 @@
         function _esc(s) {
             return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
+        // Janela de 24h dos packs: quando uma licença fica "ativa já, a aguardar confirmação de
+        // pagamento" (primeira ativação ou renovação com a licença já no fim), guarda-se em
+        // limite24hMs a hora-limite. Se passar sem o Super Admin confirmar, a licença é suspensa
+        // (ativa=false → o mesmo estado de "pendente de pagamento" que já existe). Verificado
+        // sempre que a app abre — coerente com o resto da app (opção B).
+        function _verificarJanela24hPacks() {
+            if (!dados.administradores) return;
+            let mudou = false;
+            dados.administradores.forEach(a => {
+                const lic = a.licenca;
+                if (lic && lic.pendente24h && lic.limite24hMs && Date.now() >= lic.limite24hMs && lic.ativa !== false) {
+                    lic.ativa = false;          // suspende (pendente de pagamento)
+                    lic.pendente24h = false;    // a janela já passou, não volta a disparar
+                    mudou = true;
+                }
+            });
+            if (mudou) guardarDados(dados);
+        }
         function _verificarPontoEsquecido() {
             const agora = Date.now();
             const LIMITE_HORAS_ESQUECIMENTO = 12; // fecho automático 12h após a entrada, por pedido
@@ -3791,6 +3809,7 @@
                 _abrirPainelTV();
             }
             _verificarPontoEsquecido();
+            _verificarJanela24hPacks();
             renderizarNotifPessoalBanner();
             renderizarOMeuDia();
             _atualizarBannerLicenca();
@@ -4237,9 +4256,12 @@
                 const ehRondas = (p.tipo || '').startsWith('rondas');
                 const ehModulo = ehContrato || ehFrota || ehArmazem || ehPortal || ehNotif || ehCrm || ehAssist || ehRondas;
                 const ehCancelamento = p.tipo === 'cancelamento';
-                const planoAtual = (ehModulo || ehCancelamento) ? '-' : (admin?.licenca ? PLANOS[admin.licenca.plano]?.label : '-');
-                const planoPedido = ehContrato ? 'Contratos de Manutenção' : ehFrota ? 'Frota' : ehArmazem ? 'Armazém' : ehPortal ? 'Portal do Cliente' : ehNotif ? 'Notificações' : ehCrm ? 'CRM Comercial' : ehAssist ? 'Total Gest Assist' : ehRondas ? 'Rondas / Vigilância' : ehCancelamento ? 'Cancelamento de subscrição' : (PLANOS[p.planoPedido]?.label || p.planoPedido);
-                const valorPedido = ehContrato
+                const ehPack = p.tipo === 'pack';
+                const planoAtual = (ehModulo || ehCancelamento || ehPack) ? '-' : (admin?.licenca ? PLANOS[admin.licenca.plano]?.label : '-');
+                const planoPedido = ehPack ? `Pack ${PACKS[p.packPedido]?.nome || p.packPedido}` : ehContrato ? 'Contratos de Manutenção' : ehFrota ? 'Frota' : ehArmazem ? 'Armazém' : ehPortal ? 'Portal do Cliente' : ehNotif ? 'Notificações' : ehCrm ? 'CRM Comercial' : ehAssist ? 'Total Gest Assist' : ehRondas ? 'Rondas / Vigilância' : ehCancelamento ? 'Cancelamento de subscrição' : (PLANOS[p.planoPedido]?.label || p.planoPedido);
+                const valorPedido = ehPack
+                    ? (p.valor != null ? p.valor.toFixed(2) + '€' : '-')
+                    : ehContrato
                     ? (p.tipo === 'contrato_anual' ? PRECO_CONTRATOS_ANUAL.toFixed(2) + '€' : PRECO_CONTRATOS_MENSAL.toFixed(2) + '€')
                     : ehFrota
                     ? (p.tipo === 'frota_anual' ? PRECO_FROTA_ANUAL.toFixed(2) + '€' : PRECO_FROTA_MENSAL.toFixed(2) + '€')
@@ -4256,7 +4278,8 @@
                     : ehRondas
                     ? 'Grátis'
                     : (PLANOS[p.planoPedido]?.preco ? PLANOS[p.planoPedido].preco.toFixed(2) + '€' : '-');
-                const tipoLabel = p.tipo === 'renovacao' ? 'Renovação'
+                const tipoLabel = p.tipo === 'pack' ? `Pack ${PACKS[p.packPedido]?.nome || p.packPedido} (${p.periodoPedido === 'anual' ? 'Anual' : 'Mensal'}, ${p.funcMax} func.)`
+                    : p.tipo === 'renovacao' ? 'Renovação'
                     : p.tipo === 'alteracao' ? 'Alteração de Plano'
                     : p.tipo === 'contrato_mensal' ? 'Contratos (Mensal)'
                     : p.tipo === 'contrato_anual' ? 'Contratos (Anual)'
@@ -4559,8 +4582,34 @@
                 expiracaoMs: admin.rondasExpiracao, precoTexto: 'grátis (fase de lançamento)', pedidoPendente: rondasPedidoPend,
                 descricaoInativo: 'Gestão de rondas de segurança: postos com QR/NFC, rotas com horário e SLA, execução com scanner no telemóvel e alertas automáticos de postos saltados ou fora de horário. Grátis por agora, fase de lançamento. Ative em "Alterar Plano" no topo desta página.'
             });
+            // Cartão de destaque do pack (modelo novo) — só aparece se a conta tiver um pack.
+            // Mostra o pack, o escalão e o preço, mais a lista do que inclui. As contas antigas
+            // (sem pack) não veem isto e continuam a ver só os add-ons individuais como antes.
+            const _packAtual = packDoAdmin(admin);
+            let _packCardHtml = '';
+            if (_packAtual) {
+                const def = PACKS[_packAtual];
+                const esc = admin.packEscalao || '5';
+                const escLabel = esc === '50+' ? 'Mais de 50 (blocos de +5)' : `Até ${esc} funcionários`;
+                const precoBase = PACK_PRECOS[_packAtual]?.[esc === '50+' ? 50 : esc];
+                const inclui = [];
+                if (def.flags?.expressAtivo) inclui.push('Menu simplificado (Express)');
+                if (def.flags?.segurancaAtivo) inclui.push('Relatórios de especialidade');
+                (def.planos || []).forEach(p => {
+                    const nome = { contratosPlano: 'Contratos de Manutenção', frotaPlano: 'Frota', armazemPlano: 'Armazém / Obras', crmPlano: 'CRM Comercial', assistPlano: 'Assist', erpPlano: 'Integração ERP', rondasPlano: 'Rondas', portalPlano: 'Portal do Cliente' }[p];
+                    if (nome) inclui.push(nome);
+                });
+                _packCardHtml = `
+                    <div class="report-card" style="border-left-color:#1e40af;background:linear-gradient(135deg,#eff6ff,#fff);">
+                        <h4><i class="fas fa-box-open"></i> Pack ${def.nome}</h4>
+                        <div class="report-item"><span>Escalão</span><span>${escLabel}</span></div>
+                        ${precoBase ? `<div class="report-item"><span>Preço base</span><span>${precoBase.toFixed(2)} €/mês${_IVA_INC}</span></div>` : ''}
+                        <div style="margin-top:10px;font-size:.85rem;color:#334155;"><strong>Inclui:</strong> Base (OS, folhas, clientes, contratos, relatórios personalizados)${inclui.length ? ', ' + inclui.join(', ') : ''}.</div>
+                    </div>`;
+            }
             container.innerHTML = `
                     ${fbBanner}
+                    ${_packCardHtml}
                     <div class="report-card ${fbClasse}" style="border-left-color: ${valida ? '#16a34a' : '#dc2626'};">
                         <h4><i class="fas fa-id-card"></i> ${admin.nome}</h4>
                         <div class="report-item"><span>Empresa</span><span>${admin.empresa || '-'}</span></div>
@@ -7165,9 +7214,116 @@
             abrirSecao('contratos');
         }
 
-        // ----- Licenciamento do módulo de Frota (mesma lógica dos Contratos) -----
-        const PRECO_FROTA_MENSAL = 9.99;
-        const PRECO_FROTA_ANUAL = +(9.99 * 12 * 0.9).toFixed(2); // 107.89
+        // =====================================================================
+        //  MOTOR DE PACKS (Fase 1) — "Opção B": um pack é só um atalho que liga o conjunto
+        //  certo de módulos/add-ons que já existem. NADA disto corre automaticamente ainda —
+        //  fica aqui pronto, desligado, para as fases seguintes (site, checkout, super admin,
+        //  renovação, limites) irem ligando peça a peça. Nenhuma conta existente é tocada.
+        //
+        //  Packs são cumulativos: Express ⊂ Expert ⊂ Pro ⊂ Supreme. Cada nível traz tudo o do
+        //  anterior mais o seu. A base (OS, folhas de obra, clientes, contratos, relatórios
+        //  personalizados, calendário de equipa) está em todos e não precisa de flag.
+        // =====================================================================
+        const PACKS = {
+            express: {
+                nome: 'Express',
+                ordem: 1,
+                // Menu reduzido, sem ponto/armazém/frota/CRM. É o único que liga expressAtivo.
+                flags: { expressAtivo: true },
+                planos: [],       // add-ons "com plano" (frotaPlano, crmPlano, etc.) que ficam ativos
+                limites: { relatoriosPersonalizados: 5, camposPorRelatorio: 5 },
+            },
+            expert: {
+                nome: 'Expert',
+                ordem: 2,
+                // Parte de pessoas/campo: ponto, GPS picagem, férias, portal, assistências,
+                // relatórios de especialidade, mapa da equipa, painel TV.
+                flags: { segurancaAtivo: true, painelTvAtivo: true },
+                planos: ['assistPlano', 'portalPlano'],
+                limites: { relatoriosPersonalizados: 15, camposPorRelatorio: 15 },
+            },
+            pro: {
+                nome: 'Pro',
+                ordem: 3,
+                // Operacional pesado: obras, stock, frota, ferramentas, financeiro, custos internos.
+                // Herda tudo o do Expert (menos o painelTv, que o teu ficheiro tirou do Pro).
+                flags: { segurancaAtivo: true, obrasAvancadoAtivo: true, materiaisEntregaAtivo: true },
+                planos: ['assistPlano', 'portalPlano', 'contratosPlano', 'frotaPlano', 'armazemPlano'],
+                limites: { relatoriosPersonalizados: 40, camposPorRelatorio: 40 },
+            },
+            supreme: {
+                nome: 'Supreme',
+                ordem: 4,
+                // Topo: CRM, dashboard analítico, GPS mapa/geofence, rondas, ERP, auditoria,
+                // painel TV. Herda tudo o do Pro.
+                flags: { segurancaAtivo: true, obrasAvancadoAtivo: true, materiaisEntregaAtivo: true, painelTvAtivo: true },
+                planos: ['assistPlano', 'portalPlano', 'contratosPlano', 'frotaPlano', 'armazemPlano', 'crmPlano', 'erpPlano', 'rondasPlano'],
+                limites: { relatoriosPersonalizados: Infinity, camposPorRelatorio: Infinity },
+            },
+        };
+        // Preços base por escalão de funcionários (c/ IVA), tal como definidos no plano de packs.
+        const PACK_PRECOS = {
+            express: { 5: 42.49, 10: 47.49, 25: 62.49, 50: 102.49 },
+            expert:  { 5: 52.49, 10: 57.49, 25: 72.49, 50: 112.49 },
+            pro:     { 5: 72.49, 10: 77.49, 25: 92.49, 50: 132.49 },
+            supreme: { 5: 102.49, 10: 107.49, 25: 122.49, 50: 162.49 },
+        };
+        // Acima de 50 funcionários: blocos de +5, a 5€/bloco/mês, iguais em todos os packs.
+        const PACK_PRECO_BLOCO_5 = 5;
+        // Devolve o pack atual da conta (ou null se for uma conta antiga, ainda no modelo de
+        // add-ons soltos). Preparado para a Fase 6 (migração) — por agora, quase todas devolvem null.
+        function packDoAdmin(admin) {
+            const p = admin?.packAtual;
+            return (p && PACKS[p]) ? p : null;
+        }
+        // Limite de uma funcionalidade para o pack da conta. Sem pack (conta antiga) → sem limite
+        // (Infinity), para o modelo antigo continuar a funcionar exatamente como antes.
+        function packLimite(admin, chaveLimite) {
+            const p = packDoAdmin(admin);
+            if (!p) return Infinity;
+            const lim = PACKS[p].limites?.[chaveLimite];
+            return lim == null ? Infinity : lim;
+        }
+        // Aplica um pack a uma conta: liga as flags e marca os planos como ativos. Recebe uma
+        // validade (ms) para os add-ons "com plano". NÃO grava — quem chamar decide guardar.
+        // Só será usado a partir da Fase 3 (super admin / checkout); aqui fica pronto.
+        function aplicarPackAoAdmin(admin, nomePack, validadeMs) {
+            const def = PACKS[nomePack];
+            if (!admin || !def) return false;
+            admin.packAtual = nomePack;
+            Object.entries(def.flags || {}).forEach(([k, v]) => { admin[k] = v; });
+            (def.planos || []).forEach(planoKey => {
+                admin[planoKey] = 'mensal';
+                const expKey = planoKey.replace('Plano', 'Expiracao');
+                admin[expKey] = validadeMs || (Date.now() + 30 * 24 * 60 * 60 * 1000);
+            });
+            return true;
+        }
+        // Quando o super admin escolhe um pack no formulário (criar/editar), preenche os
+        // seletores de licença individuais em baixo conforme o pack — para ele VER o que o pack
+        // liga, e para o guardar reaproveitar a lógica de licenças que já existe. prefixo é
+        // 'admin' (criar) ou 'edit_admin' (editar). "Sem pack" não mexe em nada (gestão à peça).
+        function _adminPackMudou(prefixo) {
+            const pack = document.getElementById(prefixo + '_pack')?.value;
+            const info = document.getElementById('admin_pack_info');
+            if (!pack || !PACKS[pack]) return;
+            const def = PACKS[pack];
+            const mapaPlanos = { contratosPlano: '_contratos', frotaPlano: '_frota', armazemPlano: '_armazem', crmPlano: '_crm', assistPlano: '_assist', erpPlano: '_erp', rondasPlano: '_rondas', portalPlano: '_portal' };
+            Object.values(mapaPlanos).forEach(sufixo => {
+                const el = document.getElementById(prefixo + sufixo);
+                if (el) el.value = '';
+            });
+            (def.planos || []).forEach(planoKey => {
+                const el = document.getElementById(prefixo + (mapaPlanos[planoKey] || ''));
+                if (el) el.value = 'mensal';
+            });
+            if (info) {
+                const precoBase = PACK_PRECOS[pack]?.[document.getElementById(prefixo + '_pack_escalao')?.value || '5'];
+                info.innerHTML = `<b>Pack ${def.nome}</b> — as licenças em baixo foram preenchidas conforme este pack${precoBase ? ` · preço base ${precoBase.toFixed(2)} €/mês` : ''}. Ajusta à mão se precisares.`;
+            }
+        }
+
+
         const PRECO_ARMAZEM_MENSAL = 9.99;
         const PRECO_ARMAZEM_ANUAL = +(9.99 * 12 * 0.9).toFixed(2); // 107.89
         const PRECO_NOTIFICACOES_MENSAL = 4.99;
@@ -7769,6 +7925,7 @@
         }
         function valorDoPedido(p) {
             const t = p.tipo || '';
+            if (t === 'pack') return p.valor || 0; // pedido de pack: valor já calculado ao pedir
             if (t === 'contrato_anual') return PRECO_CONTRATOS_ANUAL;
             if (t === 'contrato_mensal') return PRECO_CONTRATOS_MENSAL;
             if (t === 'frota_anual') return PRECO_FROTA_ANUAL;
@@ -21019,6 +21176,26 @@ async function salvarEncarregado(e) {
                             <div class="help-text">Ele vai pagar-te este % a menos em cada licença/add-on de cliente que emitir. Fica com um painel próprio ("Distribuição") para criar e gerir os clientes dele — e não paga uma licença base para si próprio, já que não é um cliente normal.</div>
                         </div>
                     </div>
+                    <div class="form-group" style="background:#eef6ff;padding:14px;border-radius:8px;border:1px solid #bfdbfe;">
+                        <label style="font-weight:700;color:#1e40af;"><i class="fas fa-box-open"></i> Pack (modelo novo)</label>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+                            <select id="admin_pack" onchange="_adminPackMudou('admin')" style="flex:1;min-width:150px;">
+                                <option value="">— Sem pack (licenças à peça, em baixo) —</option>
+                                <option value="express">Express</option>
+                                <option value="expert">Expert</option>
+                                <option value="pro">Pro</option>
+                                <option value="supreme">Supreme</option>
+                            </select>
+                            <select id="admin_pack_escalao" style="width:130px;">
+                                <option value="5">Até 5 func.</option>
+                                <option value="10">Até 10 func.</option>
+                                <option value="25">Até 25 func.</option>
+                                <option value="50">Até 50 func.</option>
+                                <option value="50+">50+ (blocos)</option>
+                            </select>
+                        </div>
+                        <div id="admin_pack_info" class="help-text" style="margin-top:6px;">Ao escolher um pack, as licenças individuais em baixo são preenchidas automaticamente conforme o pack. Deixa "Sem pack" para gerires à peça, como antes.</div>
+                    </div>
                     <div class="form-group">
                         <label>Licença de Contratos de Manutenção</label>
                         <select id="admin_contratos">
@@ -21194,6 +21371,15 @@ async function salvarAdmin(e) {
             const rondasSel = document.getElementById('admin_rondas')?.value || '';
             const rondasAddon = aplicarAddonCriar(rondasSel);
             if (rondasAddon) { admin.rondasPlano = rondasAddon.plano; admin.rondasExpiracao = now + rondasAddon.dias * 86400000; if (rondasAddon.plano === 'demo') admin.rondasDemoDias = rondasAddon.dias; }
+            // Pack escolhido (modelo novo). Os seletores individuais já foram preenchidos pelo
+            // _adminPackMudou, por isso as licenças em cima já refletem o pack — aqui só se grava
+            // o pack em si + as flags que não são "licença" (expressAtivo, segurancaAtivo, etc.).
+            const packSelCriar = document.getElementById('admin_pack')?.value || '';
+            if (packSelCriar && PACKS[packSelCriar]) {
+                admin.packAtual = packSelCriar;
+                admin.packEscalao = document.getElementById('admin_pack_escalao')?.value || '5';
+                Object.entries(PACKS[packSelCriar].flags || {}).forEach(([k, v]) => { admin[k] = v; });
+            }
             if (!dados.administradores) dados.administradores = [];
             dados.administradores.push(admin);
             // Reunir o que foi emitido e o respetivo valor, para email de pagamento
@@ -21673,6 +21859,19 @@ async function salvarAdmin(e) {
                 { n: conversoesTotal, l: 'Conversões' },
                 { n: taxaConversao + '%', l: 'Taxa de conversão' },
             ];
+            // Duração e scroll só existem para visitas de quem já tem o ficheiro atualizado — as
+            // mais antigas ficam sem isto (fica de fora da média, não conta como "0 segundos").
+            const comDuracao = visitas.filter(v => v.duracao_segundos != null);
+            if (comDuracao.length) {
+                const duracaoMediaSeg = Math.round(comDuracao.reduce((s, v) => s + v.duracao_segundos, 0) / comDuracao.length);
+                const min = Math.floor(duracaoMediaSeg / 60), seg = duracaoMediaSeg % 60;
+                cards.push({ n: `${min}m ${seg}s`, l: 'Duração média' });
+            }
+            const comScroll = visitas.filter(v => v.scroll_maximo_pct != null);
+            if (comScroll.length) {
+                const scrollMedio = Math.round(comScroll.reduce((s, v) => s + v.scroll_maximo_pct, 0) / comScroll.length);
+                cards.push({ n: scrollMedio + '%', l: 'Scroll médio da página' });
+            }
             document.getElementById('an_resumo').innerHTML = cards.map(c => `
                 <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;">
                     <div style="font-size:1.5rem;font-weight:800;color:#152a52;">${c.n}</div>
@@ -22226,6 +22425,26 @@ async function salvarAdmin(e) {
                         </div>
                         ${admin.distribuidorId ? `<div class="help-text" style="margin-top:8px;"><i class="fas fa-diagram-project"></i> Este cliente foi criado por um distribuidor: <strong>${escapeHtmlSimples(dados.administradores?.find(a => a.id === admin.distribuidorId)?.nome || '—')}</strong></div>` : ''}
                     </div>
+                    <div class="form-group" style="background:#eef6ff;padding:14px;border-radius:8px;border:1px solid #bfdbfe;">
+                        <label style="font-weight:700;color:#1e40af;"><i class="fas fa-box-open"></i> Pack (modelo novo)</label>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+                            <select id="edit_admin_pack" onchange="_adminPackMudou('edit_admin')" style="flex:1;min-width:150px;">
+                                <option value="" ${!admin.packAtual ? 'selected' : ''}>— Sem pack (licenças à peça, em baixo) —</option>
+                                <option value="express" ${admin.packAtual === 'express' ? 'selected' : ''}>Express</option>
+                                <option value="expert" ${admin.packAtual === 'expert' ? 'selected' : ''}>Expert</option>
+                                <option value="pro" ${admin.packAtual === 'pro' ? 'selected' : ''}>Pro</option>
+                                <option value="supreme" ${admin.packAtual === 'supreme' ? 'selected' : ''}>Supreme</option>
+                            </select>
+                            <select id="edit_admin_pack_escalao" style="width:130px;">
+                                <option value="5" ${(admin.packEscalao || '5') === '5' ? 'selected' : ''}>Até 5 func.</option>
+                                <option value="10" ${admin.packEscalao === '10' ? 'selected' : ''}>Até 10 func.</option>
+                                <option value="25" ${admin.packEscalao === '25' ? 'selected' : ''}>Até 25 func.</option>
+                                <option value="50" ${admin.packEscalao === '50' ? 'selected' : ''}>Até 50 func.</option>
+                                <option value="50+" ${admin.packEscalao === '50+' ? 'selected' : ''}>50+ (blocos)</option>
+                            </select>
+                        </div>
+                        <div class="help-text" style="margin-top:6px;">Ao mudar de pack, as licenças individuais em baixo são preenchidas conforme o pack ao guardar. Deixa "Sem pack" para gerires à peça.</div>
+                    </div>
                     <div class="form-group">
                         <label>Licença de Contratos de Manutenção</label>
                         <select id="edit_admin_contratos">
@@ -22519,6 +22738,16 @@ async function salvarAdmin(e) {
                 func.email = email;
                 if (senha) func.senha = senha;
             }
+            // Pack (modelo novo) — os seletores de licença já foram lidos acima; aqui grava-se o
+            // pack e as suas flags. Mudar de/para "Sem pack" também é respeitado.
+            const packSelE = document.getElementById('edit_admin_pack')?.value || '';
+            if (packSelE && PACKS[packSelE]) {
+                admin.packAtual = packSelE;
+                admin.packEscalao = document.getElementById('edit_admin_pack_escalao')?.value || '5';
+                Object.entries(PACKS[packSelE].flags || {}).forEach(([k, v]) => { admin[k] = v; });
+            } else {
+                admin.packAtual = null; // voltou a "sem pack" — gestão à peça
+            }
             guardarDados(dados);
             fecharModalEditarAdmin();
             renderizarTudo();
@@ -22623,11 +22852,155 @@ async function salvarAdmin(e) {
         ];
         let _renStep = 1;
         let _renWiz = { tier: '', semPlano: false, addons: [], periodo: 'mensal', obs: '' };
+        // ===================================================================
+        //  RENOVAÇÃO / MUDANÇA DE PACK (modelo novo) — Fase 4
+        // ===================================================================
+        let _renPack = null; // { pack, escalao, blocos, periodo }
+        function _abrirRenovacaoPack() {
+            const admin = adminAtual();
+            const atual = packDoAdmin(admin);
+            _renPack = {
+                pack: atual || 'expert',
+                escalao: admin.packEscalao || '5',
+                blocos: (admin.packEscalao === '50+' && admin.packBlocos) ? admin.packBlocos : 0,
+                periodo: 'mensal',
+            };
+            let overlay = document.getElementById('renPackOverlay');
+            if (!overlay) { overlay = document.createElement('div'); overlay.id = 'renPackOverlay'; overlay.className = 'modal-overlay'; document.body.appendChild(overlay); }
+            overlay.classList.add('open');
+            _renPackRender();
+        }
+        function _renPackFmt(v) { return v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+        // Total = preço do pack no escalão + blocos de +5. No anual, tudo com -10% e ×12.
+        function _renPackCalcular() {
+            const precos = PACK_PRECOS[_renPack.pack];
+            let mensal = (_renPack.escalao === '50+') ? precos[50] + _renPack.blocos * PACK_PRECO_BLOCO_5 : precos[_renPack.escalao];
+            if (_renPack.periodo === 'anual') {
+                const anual = +(mensal * 12 * 0.9).toFixed(2);
+                return { base: mensal, total: anual, sufixo: '/ano', desconto: true };
+            }
+            return { base: mensal, total: mensal, sufixo: '/mês', desconto: false };
+        }
+        function _renPackFuncMax() {
+            return _renPack.escalao === '50+' ? 50 + _renPack.blocos * 5 : parseInt(_renPack.escalao, 10);
+        }
+        function _renPackRender() {
+            const admin = adminAtual();
+            const c = _renPackCalcular();
+            const diasRest = admin.licenca ? calcularDiasRestantes(admin.licenca.dataExpiracao) : 0;
+            const licValida = admin.licenca && isLicencaValida(admin.licenca.dataExpiracao);
+            // Janela de 24h só se a licença já expirou ou expira nas próximas 24h.
+            const janela24h = !licValida || diasRest <= 1;
+            const overlay = document.getElementById('renPackOverlay');
+            overlay.innerHTML = `
+                <div class="modal" style="max-width:600px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <h3><i class="fas fa-box-open"></i> O meu pack</h3>
+                        <button class="close-modal" onclick="document.getElementById('renPackOverlay').classList.remove('open')">&times;</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Pack</label>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            ${['express','expert','pro','supreme'].map(p => `<button type="button" class="ren-pack-btn ${_renPack.pack === p ? 'active' : ''}" onclick="_renPackSet('pack','${p}')">${PACKS[p].nome}</button>`).join('')}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Funcionários</label>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            ${['5','10','25','50','50+'].map(e => `<button type="button" class="ren-pack-btn ${_renPack.escalao === e ? 'active' : ''}" onclick="_renPackSet('escalao','${e}')">${e === '50+' ? '50+' : 'Até ' + e}</button>`).join('')}
+                        </div>
+                        ${_renPack.escalao === '50+' ? `
+                        <div style="margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">
+                            <div style="font-size:.82rem;margin-bottom:6px;">Blocos de +5 funcionários (5 €/mês cada), até 100 no total:</div>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <button type="button" onclick="_renPackBloco(-1)" style="width:32px;height:32px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-size:1.1rem;">−</button>
+                                <span><strong>${_renPack.blocos}</strong> bloco(s) → <strong>${_renPackFuncMax()}</strong> funcionários</span>
+                                <button type="button" onclick="_renPackBloco(1)" style="width:32px;height:32px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-size:1.1rem;">+</button>
+                            </div>
+                            ${_renPackFuncMax() >= 100 ? '<div style="font-size:.78rem;color:#b45309;margin-top:6px;">Máximo de 100 funcionários por licença. Para mais, fala connosco.</div>' : ''}
+                        </div>` : ''}
+                    </div>
+                    <div class="form-group">
+                        <label>Período</label>
+                        <div style="display:flex;gap:6px;">
+                            <button type="button" class="ren-pack-btn ${_renPack.periodo === 'mensal' ? 'active' : ''}" onclick="_renPackSet('periodo','mensal')">Mensal</button>
+                            <button type="button" class="ren-pack-btn ${_renPack.periodo === 'anual' ? 'active' : ''}" onclick="_renPackSet('periodo','anual')">Anual (−10%)</button>
+                        </div>
+                    </div>
+                    <div style="background:#eff6ff;border-radius:10px;padding:14px 16px;margin:8px 0;">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                            <span style="font-weight:600;">Pack ${PACKS[_renPack.pack].nome} · ${_renPack.escalao === '50+' ? _renPackFuncMax() + ' func.' : 'até ' + _renPack.escalao}</span>
+                            <span style="font-size:1.3rem;font-weight:700;color:#0b1f3a;">${_renPackFmt(c.total)}<span style="font-size:.8rem;font-weight:400;color:#64748b;">${c.sufixo}${_IVA_INC}</span></span>
+                        </div>
+                        ${c.desconto ? `<div style="font-size:.78rem;color:#16a34a;margin-top:4px;">Já com 10% de desconto anual (equivale a ${_renPackFmt(+(c.total/12).toFixed(2))}/mês).</div>` : ''}
+                        ${diasRest > 1 && licValida ? `<div style="font-size:.78rem;color:#64748b;margin-top:4px;">Os ${diasRest} dias que ainda tens somam-se ao novo período.</div>` : ''}
+                    </div>
+                    ${janela24h
+                        ? `<div style="background:#fef3c7;border-radius:8px;padding:12px;color:#92400e;font-size:.85rem;margin-bottom:8px;"><i class="fas fa-clock"></i> A licença fica <strong>ativa já</strong>, e tens <strong>24 horas</strong> para o pagamento ser confirmado. Se não for confirmado nesse prazo, a licença fica suspensa até ao pagamento.</div>`
+                        : `<div style="background:#d1fae5;border-radius:8px;padding:12px;color:#065f46;font-size:.85rem;margin-bottom:8px;"><i class="fas fa-check-circle"></i> Como a tua licença ainda é válida, esta mudança fica ativa sem prazo de 24h — os dias que faltam somam-se.</div>`}
+                    <div class="form-group">
+                        <label>Observações (opcional)</label>
+                        <textarea id="ren_pack_obs" rows="2" placeholder="Algo que queiras dizer-nos sobre este pedido..."></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary" style="width:100%;" onclick="_renPackEnviar()"><i class="fas fa-paper-plane"></i> Pedir ${PACKS[_renPack.pack].nome} — ${_renPackFmt(c.total)}${c.sufixo}</button>
+                </div>`;
+        }
+        function _renPackSet(campo, valor) {
+            _renPack[campo] = valor;
+            if (campo === 'escalao' && valor !== '50+') _renPack.blocos = 0;
+            _renPackRender();
+        }
+        function _renPackBloco(delta) {
+            const novo = _renPack.blocos + delta;
+            if (novo < 0) return;
+            if (50 + novo * 5 > 100) return; // teto de 100
+            _renPack.blocos = novo;
+            _renPackRender();
+        }
+        function _renPackEnviar() {
+            const admin = adminAtual();
+            const c = _renPackCalcular();
+            const obs = document.getElementById('ren_pack_obs')?.value?.trim() || '';
+            const pedido = {
+                id: gerarId(),
+                adminId: admin.id,
+                tipo: 'pack',
+                packPedido: _renPack.pack,
+                escalaoPedido: _renPack.escalao,
+                blocosPedido: _renPack.blocos,
+                periodoPedido: _renPack.periodo,
+                funcMax: _renPackFuncMax(),
+                valor: c.total,
+                status: 'pendente',
+                data: Date.now(),
+                observacoes: obs,
+            };
+            dados.pedidosRenovacao = dados.pedidosRenovacao || [];
+            dados.pedidosRenovacao.push(pedido);
+            // Janela de 24h: só se a licença já expirou ou expira nas próximas 24h. Nesse caso, a
+            // licença fica ativa já, mas com uma hora-limite — se o Super Admin não confirmar o
+            // pagamento até lá, _verificarJanela24hPacks suspende-a. Se a licença ainda é válida
+            // com folga, não se arma nada (o cliente não é penalizado por mudar de plano).
+            const _diasRest = admin.licenca ? calcularDiasRestantes(admin.licenca.dataExpiracao) : 0;
+            const _licValida = admin.licenca && isLicencaValida(admin.licenca.dataExpiracao);
+            if (admin.licenca && (!_licValida || _diasRest <= 1)) {
+                admin.licenca.ativa = true;                 // ativa já
+                admin.licenca.pendente24h = true;
+                admin.licenca.limite24hMs = Date.now() + 24 * 60 * 60 * 1000;
+                if (!_licValida) admin.licenca.dataExpiracao = admin.licenca.limite24hMs; // dá acesso durante a janela
+            }
+            guardarDados(dados);
+            document.getElementById('renPackOverlay').classList.remove('open');
+            alert(`Pedido enviado! 🎉\n\nPack ${PACKS[_renPack.pack].nome} · ${_renPackFmt(c.total)}${c.sufixo}\n\nA licença fica ativa e o Super Admin vai confirmar o pagamento.`);
+        }
         function abrirModalRenovacao(tipo) {
             if (!usuarioLogado || usuarioLogado.role !== 'admin' && usuarioLogado.role !== 'subadmin') {
                 alert('Apenas administradores podem fazer pedidos de renovação.');
                 return;
             }
+            // Contas com pack (modelo novo) usam o modal de renovação próprio de packs, não o
+            // wizard de add-ons à peça (que continua a servir as contas antigas).
+            if (packDoAdmin(adminAtual())) { _abrirRenovacaoPack(); return; }
             renovacaoTipo = tipo;
             const overlay = document.getElementById('modalRenovacaoOverlay');
             const titulo = tipo === 'renovacao' ? 'Pedir Renovação / Alteração ao seu Plano' : 'Alterar Plano';
@@ -23269,6 +23642,36 @@ async function salvarAdmin(e) {
             // pedidos, o que fazia a validade "perder" os dias ainda por gastar sempre que se
             // aprovava antes do fim do ciclo atual.
             const _baseRenov = (expAtual) => (expAtual && expAtual > Date.now()) ? expAtual : Date.now();
+            // Pedido de PACK (modelo novo): aplica o pack, define o máximo de funcionários pelo
+            // escalão/blocos, e soma o período (30 ou 365 dias) ao que ainda falta. A confirmação
+            // do Super Admin aqui é o "pagamento confirmado" — a licença passa a válida pelo
+            // período contratado, e a janela de 24h deixa de estar pendente.
+            if ((pedido.tipo || '') === 'pack') {
+                const dias = pedido.periodoPedido === 'anual' ? 365 : 30;
+                // Aplica o pack (liga flags + add-ons). A validade dos add-ons acompanha a licença
+                // base: parte do que ainda falta e soma o período contratado.
+                const novaValidade = _baseRenov(admin.licenca?.dataExpiracao) + dias * 86400000;
+                aplicarPackAoAdmin(admin, pedido.packPedido, novaValidade);
+                admin.packEscalao = pedido.escalaoPedido;
+                admin.packBlocos = pedido.blocosPedido || 0;
+                // Licença base: soma o período ao que falta, e ajusta o máximo de funcionários.
+                if (admin.licenca) {
+                    admin.licenca.dataExpiracao = _baseRenov(admin.licenca.dataExpiracao) + dias * 86400000;
+                    admin.licenca.maxFuncionarios = pedido.funcMax;
+                    admin.licenca.ativa = true;
+                    admin.licenca.pendente24h = false;
+                    admin.licenca.limite24hMs = null;
+                }
+                pedido.status = 'aprovado';
+                admin.licencaFeedback = 'verde';
+                guardarDados(dados);
+                piscarAdmin(admin.id, 'verde');
+                const labelP = `Pack ${PACKS[pedido.packPedido]?.nome || pedido.packPedido} — ${pedido.periodoPedido === 'anual' ? 'Anual' : 'Mensal'} (${pedido.funcMax} func.)`;
+                if (!silencioso) alert(`✅ ${labelP} ativado para ${admin.nome}.`);
+                registarHistoricoLicenca(admin.id, 'renovacao_aprovada', labelP, pedido.valor);
+                if (!silencioso) _enviarEmailRenovacaoAprovada(admin, labelP);
+                return labelP;
+            }
             if ((pedido.tipo || '').startsWith('contrato')) {
                 const planoC = pedido.tipo === 'contrato_anual' ? 'anual' : 'mensal';
                 const dias = planoC === 'anual' ? 365 : 30;
@@ -26854,7 +27257,7 @@ async function salvarAdmin(e) {
             document.getElementById('modalGenericoCampos').innerHTML = `
                 <div class="rp-editor-scroll" style="height:100%;overflow-y:auto;display:flex;flex-direction:column;">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-                        <p class="help-text" style="margin:0;">Tipos de trabalho criados por ti. Os tipos base (REX, RBI, etc.) já têm o relatório de especialidade próprio e não aparecem aqui.</p>
+                        <p class="help-text" style="margin:0;">Tipos de trabalho criados por ti. Os tipos base (REX, RBI, etc.) já têm o relatório de especialidade próprio e não aparecem aqui.${(() => { const lim = packLimite(adminAtual(), 'relatoriosPersonalizados'); return lim !== Infinity ? ` <strong>${tipos.length}/${lim}</strong> usados.` : ''; })()}</p>
                         <button type="button" class="btn btn-sm btn-primary" style="flex-shrink:0;" onclick="_rpNovoTipo()"><i class="fas fa-plus"></i> Novo</button>
                     </div>
                     ${tipos.length ? `
@@ -26882,9 +27285,18 @@ async function salvarAdmin(e) {
         // Criar um novo tipo de trabalho próprio diretamente daqui — a mesma coisa que já dava
         // para fazer ao editar uma OS (campo "Novo tipo de trabalho"), sem precisar de lá ir.
         function _rpNovoTipo() {
+            const tid = _tenantId();
+            // Limite de modelos de relatório por pack (Express 5 / Expert 15 / Pro 40 / Supreme ∞).
+            // Contas sem pack (modelo antigo) não têm limite. Os tipos base (REX, etc.) não contam,
+            // só os personalizados criados pela empresa.
+            const limite = packLimite(adminAtual(), 'relatoriosPersonalizados');
+            const jaTem = (dados.tiposTrabalhoCustom || []).filter(t => t.adminId === tid).length;
+            if (jaTem >= limite) {
+                alert(`O teu pack permite até ${limite} modelo${limite === 1 ? '' : 's'} de relatório personalizado, e já os tens todos. Para criares mais, muda para um pack superior em "Minha Licença".`);
+                return;
+            }
             const nome = (prompt('Nome do novo tipo de trabalho:') || '').trim();
             if (!nome) return;
-            const tid = _tenantId();
             const codigo = 'CUSTOM_' + nome.toUpperCase().replace(/[^A-Z0-9]+/g, '_').slice(0, 30) + '_' + Date.now().toString(36);
             dados.tiposTrabalhoCustom = dados.tiposTrabalhoCustom || [];
             dados.tiposTrabalhoCustom.push({ id: gerarId(), adminId: tid, codigo, nome, criadoEm: Date.now() });
@@ -26938,6 +27350,11 @@ async function salvarAdmin(e) {
                         <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;white-space:nowrap;" title="O campo fica só com metade da largura, para partilhar a linha com outro campo de meia largura logo a seguir">
                             <input type="checkbox" id="rp_novo_campo_metade" style="width:auto;margin:0;" /> Meia largura
                         </label>
+                        <select id="rp_novo_campo_tamanho" style="width:120px;" title="Tamanho da letra deste campo">
+                            <option value="pequeno">Letra pequena</option>
+                            <option value="normal" selected>Letra normal</option>
+                            <option value="grande">Letra grande</option>
+                        </select>
                         <button type="button" class="btn btn-sm btn-outline" onclick="_rpAdicionarCampo('${codigo}')"><i class="fas fa-plus"></i> Adicionar campo</button>
                     </div>
                 </div>
@@ -26956,6 +27373,23 @@ async function salvarAdmin(e) {
             if (!iframe) return;
             try {
                 const html = _gerarTemplateRelatorioCustom(tipo);
+                iframe.onload = () => {
+                    const admin = adminAtual();
+                    if (!admin) return;
+                    iframe.contentWindow.postMessage({
+                        type: 'init',
+                        empresaNome: admin.empresa || admin.nome || '',
+                        logoBase64: admin.logo || '',
+                        corCorporativa: admin.corCorporativa || '',
+                        anepcNumero: admin.numeroAnepc || '',
+                        registoPrevioNumero: admin.numeroRegistoPrevio || '',
+                        certificadoraLogo: admin.certificadoraLogo || '',
+                        cliente: 'Cliente de exemplo',
+                        morada: 'Morada de exemplo, nº 1',
+                        numero: 'PRÉ-VISUALIZAÇÃO',
+                        data: getDataHoje(),
+                    }, '*');
+                };
                 iframe.srcdoc = html;
             } catch (e) {
                 iframe.srcdoc = '<p style="font-family:sans-serif;color:#94a3b8;padding:16px;font-size:.85rem;">Adiciona um campo para veres aqui a pré-visualização.</p>';
@@ -26988,21 +27422,34 @@ async function salvarAdmin(e) {
             _rpAtualizarLista(tipo);
             _rpAtualizarPreview(tipo);
         }
+        const RP_TAMANHOS = { pequeno: 'Pequena', normal: 'Normal', grande: 'Grande' };
         function _rpAtualizarLista(tipo) {
             const lista = document.getElementById('rp_lista_campos');
             if (!lista) return;
             lista.innerHTML = (tipo.campos || []).length ? tipo.campos.map((c, i) => {
                 const info = CAMPO_TIPOS.find(t => t.valor === c.tipo) || CAMPO_TIPOS[0];
                 const ehMetade = c.largura === 'metade';
+                const tamanhoAtual = c.tamanho || 'normal';
                 return `<div class="rp-campo-linha" draggable="true" ondragstart="_rpDragStart(event, ${i})" ondragover="_rpDragOver(event)" ondragleave="this.classList.remove('rp-drag-over')" ondrop="_rpDrop(event, '${tipo.codigo}', ${i})" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;border:2px solid transparent;">
                     <i class="fas fa-grip-vertical" style="color:#cbd5e1;cursor:grab;" title="Arrasta para reordenar"></i>
                     <i class="fas ${info.icon}" style="color:#64748b;width:18px;"></i>
                     <span style="flex:1;">${escapeHtmlSimples(c.label)}</span>
                     <span class="help-text">${info.label}</span>
+                    <select onchange="_rpAlterarTamanho('${tipo.codigo}', ${i}, this.value)" title="Tamanho da letra" style="font-size:.78rem;padding:3px 4px;">
+                        ${Object.entries(RP_TAMANHOS).map(([v, l]) => `<option value="${v}" ${tamanhoAtual === v ? 'selected' : ''}>${l}</option>`).join('')}
+                    </select>
                     ${c.tipo !== 'titulo' ? `<button type="button" class="btn btn-sm" style="background:${ehMetade ? '#dcfce7' : '#eef2ff'};color:${ehMetade ? '#166534' : '#3730a3'};min-width:38px;" onclick="_rpAlternarLargura('${tipo.codigo}', ${i})" title="${ehMetade ? 'Meia largura — clica para pôr a largura toda' : 'Largura toda — clica para meia largura (lado a lado)'}">${ehMetade ? '½' : '1/1'}</button>` : ''}
                     <button type="button" class="btn btn-sm" style="background:#fee2e2;color:#991b1b;" onclick="_rpRemoverCampo('${tipo.codigo}', ${i})"><i class="fas fa-trash"></i></button>
                 </div>`;
             }).join('') : '<p class="help-text">Ainda sem campos — adiciona o primeiro abaixo.</p>';
+        }
+        async function _rpAlterarTamanho(codigo, indice, tamanho) {
+            const tid = _tenantId();
+            const tipo = (dados.tiposTrabalhoCustom || []).find(t => t.codigo === codigo && t.adminId === tid);
+            if (!tipo || !tipo.campos?.[indice]) return;
+            tipo.campos[indice].tamanho = tamanho;
+            try { await guardarDados(dados, ['tiposTrabalhoCustom']); } catch (e) { alert('⚠️ Ficou no ecrã, mas ainda não foi possível confirmar no servidor.'); }
+            _rpAtualizarPreview(tipo);
         }
         async function _rpAlternarLargura(codigo, indice) {
             const tid = _tenantId();
@@ -27040,13 +27487,21 @@ async function salvarAdmin(e) {
             const tipo = (dados.tiposTrabalhoCustom || []).find(t => t.codigo === codigo && t.adminId === tid);
             if (!tipo) return;
             tipo.campos = tipo.campos || [];
+            // Limite de campos por relatório, conforme o pack (Express 5 / Expert 15 / Pro 40 / ∞).
+            const limiteCampos = packLimite(adminAtual(), 'camposPorRelatorio');
+            if (tipo.campos.length >= limiteCampos) {
+                alert(`O teu pack permite até ${limiteCampos} campos por relatório. Para mais, muda para um pack superior em "Minha Licença".`);
+                return;
+            }
             const metade = document.getElementById('rp_novo_campo_metade')?.checked && tipoCampo !== 'titulo';
-            const novoCampo = { id: gerarId(), label, tipo: tipoCampo, largura: metade ? 'metade' : 'completo' };
+            const tamanho = document.getElementById('rp_novo_campo_tamanho')?.value || 'normal';
+            const novoCampo = { id: gerarId(), label, tipo: tipoCampo, largura: metade ? 'metade' : 'completo', tamanho };
             if (opcoes) novoCampo.opcoes = opcoes;
             tipo.campos.push(novoCampo);
             try { await guardarDados(dados, ['tiposTrabalhoCustom']); } catch (e) { alert('⚠️ Ficou no ecrã, mas ainda não foi possível confirmar no servidor.'); }
             document.getElementById('rp_novo_campo_label').value = '';
             const _chkMetade = document.getElementById('rp_novo_campo_metade'); if (_chkMetade) _chkMetade.checked = false;
+            const _selTamanho = document.getElementById('rp_novo_campo_tamanho'); if (_selTamanho) _selTamanho.value = 'normal';
             _rpAtualizarLista(tipo);
             _rpAtualizarPreview(tipo);
             const sel = document.getElementById('rp_tipo_select');
@@ -27082,23 +27537,24 @@ async function salvarAdmin(e) {
         // (REX, RBI, etc.), para que todo o resto do fluxo — guardar rascunho, concluir,
         // reaproveitar valores do relatório anterior, storage — funcione sem alterações.
         function _gerarTemplateRelatorioCustom(tipoDef) {
-            const campoHtml = c => {
+            const campoHtml = (c, fsz) => {
+                fsz = fsz || '.9rem';
                 const idAttr = `id="${c.id}"`;
-                if (c.tipo === 'textarea') return `<textarea ${idAttr} style="width:100%;min-height:70px;font-family:inherit;font-size:.9rem;padding:8px;border:1px solid var(--line);border-radius:6px;"></textarea>`;
-                if (c.tipo === 'numero') return `<input type="number" step="0.01" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;">`;
-                if (c.tipo === 'data') return `<input type="date" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;">`;
-                if (c.tipo === 'hora') return `<input type="time" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;">`;
-                if (c.tipo === 'lista') return `<select ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;background:#fff;">
+                if (c.tipo === 'textarea') return `<textarea ${idAttr} style="width:100%;min-height:70px;font-family:inherit;font-size:${fsz};padding:8px;border:1px solid var(--line);border-radius:6px;"></textarea>`;
+                if (c.tipo === 'numero') return `<input type="number" step="0.01" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:${fsz};">`;
+                if (c.tipo === 'data') return `<input type="date" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:${fsz};">`;
+                if (c.tipo === 'hora') return `<input type="time" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:${fsz};">`;
+                if (c.tipo === 'lista') return `<select ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:${fsz};background:#fff;">
                     <option value="">— Escolhe —</option>
                     ${(c.opcoes || []).map(o => `<option value="${escapeHtmlSimples(o)}">${escapeHtmlSimples(o)}</option>`).join('')}
                 </select>`;
-                if (c.tipo === 'checkbox') return `<div class="campo-sim-nao" data-simnao="${c.id}">
+                if (c.tipo === 'checkbox') return `<div class="campo-sim-nao" data-simnao="${c.id}" style="font-size:${fsz};">
                     <input type="hidden" ${idAttr} value="">
-                    <button type="button" class="btn-simnao" data-val="sim" onclick="_relSimNao('${c.id}','sim')">Sim</button>
-                    <button type="button" class="btn-simnao" data-val="nao" onclick="_relSimNao('${c.id}','nao')">Não</button>
+                    <button type="button" class="btn-simnao" data-val="sim" onclick="_relSimNao('${c.id}','sim')" style="font-size:${fsz};">Sim</button>
+                    <button type="button" class="btn-simnao" data-val="nao" onclick="_relSimNao('${c.id}','nao')" style="font-size:${fsz};">Não</button>
                 </div>`;
-                if (c.tipo === 'checklist') return `<label style="display:flex;align-items:center;gap:8px;font-size:.88rem;"><input type="checkbox" ${idAttr} style="width:18px;height:18px;"> Verificado / concluído</label>`;
-                return `<input type="text" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.9rem;">`;
+                if (c.tipo === 'checklist') return `<label style="display:flex;align-items:center;gap:8px;font-size:${fsz};"><input type="checkbox" ${idAttr} style="width:18px;height:18px;"> Verificado / concluído</label>`;
+                return `<input type="text" ${idAttr} style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:${fsz};">`;
             };
             // "Título de secção" não é um campo a preencher — é só um separador visual entre
             // grupos de campos. Campos marcados como "metade" juntam-se em pares na mesma
@@ -27106,16 +27562,20 @@ async function salvarAdmin(e) {
             // primeiro (nunca fica um campo perdido a meio de outra linha).
             let camposHtml = '';
             let _pendente = null;
+            const _RP_TAM_TITULO = { pequeno: '.88rem', normal: '1rem', grande: '1.3rem' };
+            const _RP_TAM_LABEL = { pequeno: '.64rem', normal: '.72rem', grande: '.82rem' };
+            const _RP_TAM_CAMPO = { pequeno: '.8rem', normal: '.9rem', grande: '1.08rem' };
             const _flush = () => { if (_pendente) { camposHtml += `<div class="field-row" style="display:flex;gap:14px;">${_pendente}<div style="flex:1;"></div></div>`; _pendente = null; } };
             (tipoDef.campos || []).forEach(c => {
+                const tam = c.tamanho || 'normal';
                 if (c.tipo === 'titulo') {
                     _flush();
                     camposHtml += `<div class="field-row" style="margin:18px 0 10px;padding-top:10px;border-top:1px solid var(--line);">
-                        <h3 style="margin:0;font-size:1rem;color:var(--accent);text-transform:none;letter-spacing:0;">${escapeHtmlSimples(c.label)}</h3>
+                        <h3 style="margin:0;font-size:${_RP_TAM_TITULO[tam]};color:var(--accent);text-transform:none;letter-spacing:0;">${escapeHtmlSimples(c.label)}</h3>
                     </div>`;
                     return;
                 }
-                const campoBloco = `<div style="flex:1;min-width:0;"><label>${escapeHtmlSimples(c.label)}</label>${campoHtml(c)}</div>`;
+                const campoBloco = `<div style="flex:1;min-width:0;"><label style="font-size:${_RP_TAM_LABEL[tam]};">${escapeHtmlSimples(c.label)}</label>${campoHtml(c, _RP_TAM_CAMPO[tam])}</div>`;
                 if (c.largura === 'metade') {
                     if (_pendente) { camposHtml += `<div class="field-row" style="display:flex;gap:14px;">${_pendente}${campoBloco}</div>`; _pendente = null; }
                     else { _pendente = campoBloco; }
@@ -27174,6 +27634,8 @@ async function salvarAdmin(e) {
   <header class="top">
     <div class="brand">
       <div class="empresa-nome" id="empresaNomeTxt"></div>
+      <div id="anepcRpLinha" style="display:none;font-size:.68rem;color:var(--muted);margin-top:3px;line-height:1.5;"></div>
+      <img id="certLogoImg" style="display:none;max-height:34px;max-width:120px;margin-top:6px;object-fit:contain;" />
     </div>
     <div class="meta">
       <div>Nº <input type="text" class="docNo"></div>
@@ -27242,6 +27704,17 @@ window._relPrefill = function(msg){
           document.documentElement.style.setProperty('--accent-soft', soft);
         }
       }
+      // ANEPC / registo prévio — só aparecem se a empresa os tiver mesmo preenchidos (ativados em
+      // "Opcionais Extra" → área de segurança). Sem isso, a linha e o logótipo ficam escondidos.
+      const linhaAnepcRp = document.getElementById('anepcRpLinha');
+      if (linhaAnepcRp) {
+        const partes = [];
+        if (msg.registoPrevioNumero) partes.push('Registo Prévio nº ' + msg.registoPrevioNumero);
+        if (msg.anepcNumero) partes.push('ANEPC nº ' + msg.anepcNumero);
+        if (partes.length) { linhaAnepcRp.textContent = partes.join(' · '); linhaAnepcRp.style.display = ''; }
+      }
+      const certLogoImg = document.getElementById('certLogoImg');
+      if (certLogoImg && msg.certificadoraLogo) { certLogoImg.src = msg.certificadoraLogo; certLogoImg.style.display = ''; }
     } catch(e){ console.error('branding relatório custom:', e); }
   }
   window._relAplicarBranding = _relAplicarBranding;

@@ -342,101 +342,56 @@
       <p class="tgc-disclaimer">Estimativa simples, baseada só nas horas administrativas que indicou — a poupança real também inclui menos deslocações a mais, menos erros de faturação e menos tempo à procura de informação dispersa.</p>
     </div>
 
-    <div class="price-grid">
-      <div class="plan">
-        <div class="tier">5 funcionários</div>
-        <div class="who">Equipas pequenas</div>
-        <div class="amt" data-m="29,99 €" data-a="323,89 €">29,99 €</div>
-        <div class="per" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div>
-        <div class="yr" data-m="" data-a="≈ 26,99 €/mês">&nbsp;</div>
-        <a class="btn btn-ghost" href="#" onclick="_tgRegistarEvento('clique_cta','plano_5');abrirModalSignup('5');return false;">Começar</a>
-      </div>
-      <div class="plan feature">
-        <span class="badge">Mais popular</span>
-        <div class="tier">10 funcionários</div>
-        <div class="who">Em crescimento</div>
-        <div class="amt" data-m="34,99 €" data-a="377,89 €">34,99 €</div>
-        <div class="per" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div>
-        <div class="yr" data-m="" data-a="≈ 31,49 €/mês">&nbsp;</div>
-        <a class="btn btn-orange" href="#" onclick="_tgRegistarEvento('clique_cta','plano_10');abrirModalSignup('10');return false;">Começar</a>
-      </div>
-      <div class="plan">
-        <div class="tier">25 funcionários</div>
-        <div class="who">PME estabelecida</div>
-        <div class="amt" data-m="49,99 €" data-a="539,89 €">49,99 €</div>
-        <div class="per" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div>
-        <div class="yr" data-m="" data-a="≈ 44,99 €/mês">&nbsp;</div>
-        <a class="btn btn-ghost" href="#" onclick="_tgRegistarEvento('clique_cta','plano_25');abrirModalSignup('25');return false;">Começar</a>
-      </div>
-      <div class="plan">
-        <div class="tier">50 funcionários</div>
-        <div class="who">Operação alargada</div>
-        <div class="amt" data-m="89,99 €" data-a="971,89 €">89,99 €</div>
-        <div class="per" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div>
-        <div class="yr" data-m="" data-a="≈ 80,99 €/mês">&nbsp;</div>
-        <a class="btn btn-ghost" href="#" onclick="_tgRegistarEvento('clique_cta','plano_50');abrirModalSignup('50');return false;">Começar</a>
-      </div>
-      <div class="plan">
-        <div class="tier">100 funcionários</div>
-        <div class="who">Grandes equipas</div>
-        <div class="amt" data-m="179,90 €" data-a="1942,92 €">179,90 €</div>
-        <div class="per" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div>
-        <div class="yr" data-m="" data-a="≈ 161,91 €/mês">&nbsp;</div>
-        <a class="btn btn-ghost" href="#" onclick="_tgRegistarEvento('clique_cta','plano_100');abrirModalSignup('100');return false;">Começar</a>
+    <div class="pack-escalao-seletor" id="packEscalaoSeletor">
+      <span class="pack-escalao-label">Quantos funcionários?</span>
+      <div class="pack-escalao-botoes">
+        <button type="button" class="pack-escalao-btn active" data-escalao="5" onclick="_packMudarEscalao('5')">Até 5</button>
+        <button type="button" class="pack-escalao-btn" data-escalao="10" onclick="_packMudarEscalao('10')">Até 10</button>
+        <button type="button" class="pack-escalao-btn" data-escalao="25" onclick="_packMudarEscalao('25')">Até 25</button>
+        <button type="button" class="pack-escalao-btn" data-escalao="50" onclick="_packMudarEscalao('50')">Até 50</button>
+        <button type="button" class="pack-escalao-btn" data-escalao="50+" onclick="_packMudarEscalao('50+')">50+</button>
       </div>
     </div>
 
-    <div class="addons">
-      <div class="addon" onclick="abrirDetalheAddon(this)" tabindex="0" role="button">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 13l2-5a2 2 0 012-1.5h10A2 2 0 0119 8l2 5v5a1 1 0 01-1 1h-1a1 1 0 01-1-1v-1H6v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="7" cy="14" r="1.3" fill="currentColor"/><circle cx="17" cy="14" r="1.3" fill="currentColor"/></svg></div>
-        <div>
-          <h3>Add-on · Frota</h3>
-          <p>Viaturas, documentos e intervenções.</p>
-        </div>
-        <div class="pa"><div class="m" data-m="9,99 €" data-a="107,89 €">9,99 €</div><div class="y" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div></div>
+    <div class="price-grid" id="packGrid">
+      <div class="plan" data-pack="express">
+        <div class="tier">Express</div>
+        <div class="who">O essencial para começar</div>
+        <div class="amt" data-preco-mensal="42.49">42,49 €</div>
+        <div class="per">por mês · c/ IVA</div>
+        <a class="pack-detalhes-link" href="#" onclick="_packVerDetalhes('express');return false;">Ver funcionalidades ↓</a>
+        <a class="btn btn-ghost" href="#" onclick="_tgRegistarEvento('clique_cta','pack_express');abrirModalSignup('express');return false;">Começar</a>
       </div>
-      <div class="addon" onclick="abrirDetalheAddon(this)" tabindex="0" role="button">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
-        <div>
-          <h3>Add-on · Contratos de Manutenção / SCIE</h3>
-          <p>Contratos, inspeções, avisos de validade e relatórios de especialidade (REX, RBI, RSI, RCM, RIE, RCP, CCTV, Intrusão).</p>
-        </div>
-        <div class="pa"><div class="m" data-m="14,99 €" data-a="161,89 €">14,99 €</div><div class="y" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div></div>
+      <div class="plan feature" data-pack="expert">
+        <span class="badge">Mais popular</span>
+        <div class="tier">Expert</div>
+        <div class="who">Equipa no terreno</div>
+        <div class="amt" data-preco-mensal="52.49">52,49 €</div>
+        <div class="per">por mês · c/ IVA</div>
+        <a class="pack-detalhes-link" href="#" onclick="_packVerDetalhes('expert');return false;">Ver funcionalidades ↓</a>
+        <a class="btn btn-orange" href="#" onclick="_tgRegistarEvento('clique_cta','pack_expert');abrirModalSignup('expert');return false;">Começar</a>
       </div>
-      <div class="addon" onclick="abrirDetalheAddon(this)" tabindex="0" role="button">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9l9-5 9 5v10a1 1 0 01-1 1h-4v-6H8v6H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M3 9h18" stroke="currentColor" stroke-width="2"/></svg></div>
-        <div>
-          <h3>Add-on · Armazém / Stock / Gestão de Obras</h3>
-          <p>Artigos, fornecedores, obras, encomendas e planos de materiais.</p>
-        </div>
-        <div class="pa"><div class="m" data-m="9,99 €" data-a="107,89 €">9,99 €</div><div class="y" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div></div>
+      <div class="plan" data-pack="pro">
+        <div class="tier">Pro</div>
+        <div class="who">Operação completa</div>
+        <div class="amt" data-preco-mensal="72.49">72,49 €</div>
+        <div class="per">por mês · c/ IVA</div>
+        <a class="pack-detalhes-link" href="#" onclick="_packVerDetalhes('pro');return false;">Ver funcionalidades ↓</a>
+        <a class="btn btn-ghost" href="#" onclick="_tgRegistarEvento('clique_cta','pack_pro');abrirModalSignup('pro');return false;">Começar</a>
       </div>
-      <div class="addon" onclick="abrirDetalheAddon(this)" tabindex="0" role="button">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="0.8" fill="currentColor"/></svg></div>
-        <div>
-          <h3>Add-on · CRM Comercial</h3>
-          <p>Gestão comercial completa: leads, propostas/orçamentos, comissões e mapa de visitas, com conversão automática em cliente assim que um negócio é fechado.</p>
-        </div>
-        <div class="pa"><div class="m" data-m="9,99 €" data-a="107,89 €">9,99 €</div><div class="y" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div></div>
-      </div>
-      <div class="addon" onclick="abrirDetalheAddon(this)" tabindex="0" role="button">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
-        <div>
-          <h3>Add-on · Total Gest Assist</h3>
-          <p>Pedidos de assistência técnica dos clientes, com criação direta de Ordem de Serviço a partir de cada pedido.</p>
-        </div>
-        <div class="pa"><div class="m" data-m="9,99 €" data-a="107,89 €">9,99 €</div><div class="y" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div></div>
-      </div>
-      <div class="addon" style="opacity:.85;display:none;" onclick="abrirDetalheAddon(this)" tabindex="0" role="button">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M9 7L4 12l5 5M15 7l5 5-5 5M13 4l-2 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div>
-          <h3>Add-on · Integração com ERP's <span style="background:#0891b2;color:#fff;font-size:.7rem;padding:2px 8px;border-radius:100px;margin-left:6px;">Em breve</span></h3>
-          <p>Emissão automática de faturas na Moloni (e futuramente noutros ERPs) diretamente a partir das Ordens de Serviço concluídas.</p>
-        </div>
-        <div class="pa"><div class="m" data-m="29,99 €" data-a="323,89 €">29,99 €</div><div class="y" data-m="por mês · c/ IVA" data-a="por ano · c/ IVA">por mês · c/ IVA</div></div>
+      <div class="plan" data-pack="supreme">
+        <div class="tier">Supreme</div>
+        <div class="who">Tudo, sem limites</div>
+        <div class="amt" data-preco-mensal="102.49">102,49 €</div>
+        <div class="per">por mês · c/ IVA</div>
+        <a class="pack-detalhes-link" href="#" onclick="_packVerDetalhes('supreme');return false;">Ver funcionalidades ↓</a>
+        <a class="btn btn-ghost" href="#" onclick="_tgRegistarEvento('clique_cta','pack_supreme');abrirModalSignup('supreme');return false;">Começar</a>
       </div>
     </div>
-    <p class="price-foot">Todos os preços incluem IVA à taxa legal em vigor. O plano anual já inclui 10% de desconto. Pagamento por transferência bancária, com ativação após confirmação.</p>
+    <p class="pack-nota-blocos" id="packNotaBlocos" style="display:none;">Acima de 50 funcionários, junta blocos de +5 por 5 €/mês cada. Mais de 100? <a href="#" onclick="abrirModalSignup();return false;">Fala connosco</a>.</p>
+    <div id="packDetalhesInline"></div>
+
+    <p class="price-foot">Todos os preços incluem IVA à taxa legal em vigor. Cada pack inclui tudo o do nível anterior. Pagamento por transferência bancária, com ativação após confirmação.</p>
   </div>
 </section>
 
@@ -2878,9 +2833,17 @@
                 <input type="text" id="su_nif" placeholder="9 dígitos" maxlength="9" required />
               </div>
             </div>
-            <div id="su_addons_bloco" style="margin:6px 0 16px;">
-              <label id="su_addons_label" style="display:block;font-size:.84rem;font-weight:600;color:#0b1f3a;margin-bottom:8px;"></label>
-              <div id="su_addons_lista" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+            <div id="su_pack_bloco" style="margin:6px 0 16px;display:none;">
+              <label style="display:block;font-size:.84rem;font-weight:600;color:#0b1f3a;margin-bottom:8px;">Quantos funcionários? <span style="font-weight:400;color:#5a6781;">(define o preço do pack)</span></label>
+              <div id="su_escalao_botoes" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+              <div id="su_blocos_wrap" style="display:none;margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">
+                <div style="font-size:.82rem;color:#0b1f3a;margin-bottom:6px;">Acima de 50, junta blocos de +5 funcionários (5 €/mês cada):</div>
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <button type="button" onclick="_suMudarBlocos(-1)" style="width:32px;height:32px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-size:1.1rem;">−</button>
+                  <span><strong id="su_blocos_num">0</strong> bloco(s) → até <strong id="su_blocos_pessoas">50</strong> funcionários</span>
+                  <button type="button" onclick="_suMudarBlocos(1)" style="width:32px;height:32px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-size:1.1rem;">+</button>
+                </div>
+              </div>
             </div>
             <button type="submit" id="su_btn">Ativar Conta Agora</button>
           </form>

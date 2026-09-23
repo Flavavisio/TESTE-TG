@@ -164,9 +164,108 @@ function _tcwCalcularResultado() {
         <a class="btn btn-orange" href="#" style="width:100%;justify-content:center;margin-top:16px;" onclick="_tgRegistarEvento('clique_cta','wizard_calc');fecharWizardCalc();abrirModalSignup();return false;">Começar 14 dias grátis <span style="margin-left:4px;">→</span></a>
     `;
 }
-function abrirModalSignup() {
+// Packs e escalões mostrados no checkout — os preços têm de bater sempre certo com os cartões
+// da página (PACK_PRECOS_SITE). Como esta página não carrega app-principal.js, ficam também aqui.
+const SU_PACKS = {
+    express: { nome: 'Express' },
+    expert:  { nome: 'Expert' },
+    pro:     { nome: 'Pro' },
+    supreme: { nome: 'Supreme' },
+};
+// Escalões de funcionários (o preço vem de PACK_PRECOS_SITE, por pack). Acima de 50, blocos de
+// +5 a 5€/mês — o checkout deixa escolher quantos blocos.
+const SU_ESCALOES = [
+    { key: '5', label: 'Até 5 funcionários' },
+    { key: '10', label: 'Até 10 funcionários' },
+    { key: '25', label: 'Até 25 funcionários' },
+    { key: '50', label: 'Até 50 funcionários' },
+    { key: '50+', label: 'Mais de 50 (blocos de +5)' },
+];
+const SU_PRECO_BLOCO_5 = 5;
+function _suFormatarEuro(v) { return v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+let _suPackSelecionado = null;
+let _suEscalaoSelecionado = '5';
+let _suBlocosExtra = 0;
+function abrirModalSignup(packChave) {
+    _suPackSelecionado = packChave && SU_PACKS[packChave] ? packChave : null;
+    _suEscalaoSelecionado = (typeof _packEscalaoAtual !== 'undefined' && _packEscalaoAtual) ? _packEscalaoAtual : '5';
+    _suBlocosExtra = 0;
+    const resumo = document.getElementById('su_plano_resumo');
+    const wrapColab = document.getElementById('su_colaboradores_wrap');
+    const inputColab = document.getElementById('su_colaboradores');
+    const blocoPack = document.getElementById('su_pack_bloco');
+    if (_suPackSelecionado) {
+        // Escolheu um pack — mostra o resumo do pack + seletor de escalão, esconde o campo livre.
+        document.getElementById('su_plano_nome').textContent = 'Pack ' + SU_PACKS[_suPackSelecionado].nome;
+        resumo.style.display = 'flex';
+        wrapColab.style.display = 'none';
+        inputColab.required = false;
+        if (blocoPack) blocoPack.style.display = '';
+        _suRenderEscaloes();
+    } else {
+        // Veio do CTA genérico "14 dias grátis" — sem pack ainda, pede só o nº de colaboradores.
+        resumo.style.display = 'none';
+        wrapColab.style.display = '';
+        inputColab.required = true;
+        inputColab.value = '';
+        if (blocoPack) blocoPack.style.display = 'none';
+    }
+    _suAtualizarTotal();
     document.getElementById('tg-signup-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
+}
+function _suRenderEscaloes() {
+    const cont = document.getElementById('su_escalao_botoes');
+    if (!cont) return;
+    cont.innerHTML = SU_ESCALOES.map(e => `
+        <button type="button" class="su-escalao-btn ${e.key === _suEscalaoSelecionado ? 'active' : ''}" onclick="_suMudarEscalao('${e.key}')">${e.label}</button>
+    `).join('');
+    const wrapBlocos = document.getElementById('su_blocos_wrap');
+    if (wrapBlocos) wrapBlocos.style.display = _suEscalaoSelecionado === '50+' ? '' : 'none';
+    const inputColab = document.getElementById('su_colaboradores');
+    if (inputColab) inputColab.value = SU_ESCALOES.find(e => e.key === _suEscalaoSelecionado)?.label || '';
+}
+function _suMudarEscalao(escalao) {
+    _suEscalaoSelecionado = escalao;
+    if (escalao !== '50+') _suBlocosExtra = 0;
+    _suRenderEscaloes();
+    _suAtualizarTotal();
+}
+function _suMudarBlocos(delta) {
+    _suBlocosExtra = Math.max(0, _suBlocosExtra + delta);
+    document.getElementById('su_blocos_num').textContent = _suBlocosExtra;
+    document.getElementById('su_blocos_pessoas').textContent = 50 + _suBlocosExtra * 5;
+    _suAtualizarTotal();
+}
+// Recalcula e mostra o preço total (pack + escalão + blocos de +5). Só quando há um pack
+// escolhido — no CTA genérico do trial não há total a mostrar, está tudo grátis no teste.
+function _suPrecoAtual() {
+    if (!_suPackSelecionado) return null;
+    const precos = PACK_PRECOS_SITE[_suPackSelecionado];
+    if (_suEscalaoSelecionado === '50+') {
+        return precos[50] + _suBlocosExtra * SU_PRECO_BLOCO_5;
+    }
+    return precos[_suEscalaoSelecionado] || precos[5];
+}
+function _suAtualizarTotal() {
+    const preco = document.getElementById('su_plano_preco');
+    const detalhe = document.getElementById('su_plano_detalhe');
+    if (!preco) return;
+    if (!_suPackSelecionado) { preco.textContent = ''; if (detalhe) detalhe.textContent = ''; return; }
+    const total = _suPrecoAtual();
+    preco.textContent = _suFormatarEuro(total) + '/mês';
+    if (detalhe) {
+        if (_suEscalaoSelecionado === '50+') {
+            detalhe.textContent = `${50 + _suBlocosExtra * 5} funcionários (${_suBlocosExtra} bloco${_suBlocosExtra === 1 ? '' : 's'} de +5)`;
+        } else {
+            detalhe.textContent = SU_ESCALOES.find(e => e.key === _suEscalaoSelecionado)?.label || '';
+        }
+    }
+}
+// "mudar" no resumo — deixa escolher outro pack sem fechar o modal.
+function _suMudarPlano() {
+    fecharModalSignup();
+    document.getElementById('preco')?.scrollIntoView({ behavior: 'smooth' });
 }
 function fecharModalSignup() {
     document.getElementById('tg-signup-overlay').classList.remove('open');
@@ -210,7 +309,13 @@ async function submeterSignup(e) {
         telefone: document.getElementById('su_telefone').value.trim(),
         colaboradores: document.getElementById('su_colaboradores').value.trim() || null,
         nif: document.getElementById('su_nif').value.trim() || null,
-        senha: document.getElementById('su_senha').value
+        senha: document.getElementById('su_senha').value,
+        // Modelo de packs: manda o pack escolhido, o escalão e (se for 50+) os blocos de +5.
+        // "plano" fica com o nome do pack, para a Edge Function/super admin saberem o que ativar.
+        plano: _suPackSelecionado || null,
+        escalao: _suPackSelecionado ? _suEscalaoSelecionado : null,
+        blocosExtra: _suPackSelecionado && _suEscalaoSelecionado === '50+' ? _suBlocosExtra : 0,
+        addons: [],
     };
     const senha2 = document.getElementById('su_senha2').value;
     if (!dadosPedido.empresa || !dadosPedido.nome || !dadosPedido.email || !dadosPedido.telefone || !dadosPedido.colaboradores || !dadosPedido.nif) {
@@ -318,10 +423,126 @@ function _tgIdentificarVisitante(nome, email) {
         supa.functions.invoke('registar-visita', { body: { acao: 'identificar', sessaoId: _tgSessaoId(), visitaId: _tgVisitaId, nome: nome || null, email: email || null } }).catch(() => {});
     } catch (e) { /* silencioso */ }
 }
+// Duração da visita e profundidade de scroll — o que interessa aqui não é a cada X segundos, é
+// o valor MÁXIMO ao longo de toda a visita (scroll pode subir e descer; duração só cresce).
+// Manda pelo sendBeacon ao sair, porque nessa altura a página pode fechar a qualquer instante —
+// um fetch normal arriscava-se a nunca chegar a partir.
+let _tgInicioVisita = Date.now();
+let _tgScrollMaximo = 0;
+function _tgAtualizarScrollMaximo() {
+    const doc = document.documentElement;
+    const alturaTotal = doc.scrollHeight - doc.clientHeight;
+    if (alturaTotal <= 0) { _tgScrollMaximo = 100; return; }
+    const pct = Math.round(Math.min(100, (window.scrollY / alturaTotal) * 100));
+    if (pct > _tgScrollMaximo) _tgScrollMaximo = pct;
+}
+function _tgEnviarDuracaoFinal() {
+    try {
+        if (!_tgVisitaId) return; // visita nem chegou a ficar registada, nada a atualizar
+        const duracaoSegundos = Math.round((Date.now() - _tgInicioVisita) / 1000);
+        const payload = JSON.stringify({ acao: 'duracao', sessaoId: _tgSessaoId(), visitaId: _tgVisitaId, duracaoSegundos, scrollMaximoPct: _tgScrollMaximo });
+        const url = `${SUPABASE_URL}/functions/v1/registar-visita`;
+        // Nota: usa fetch(keepalive) em vez de sendBeacon — o sendBeacon não deixa mandar
+        // cabeçalhos, e esta função (como todas as outras chamadas à Supabase) precisa da apikey
+        // para aceitar o pedido. O keepalive garante o mesmo comportamento essencial do beacon:
+        // o pedido continua a ser enviado mesmo que a página feche logo a seguir.
+        fetch(url, {
+            method: 'POST',
+            keepalive: true,
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+            body: payload,
+        }).catch(() => {});
+    } catch (e) { /* silencioso */ }
+}
+window.addEventListener('scroll', _tgAtualizarScrollMaximo, { passive: true });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') _tgEnviarDuracaoFinal(); });
+window.addEventListener('pagehide', _tgEnviarDuracaoFinal);
+
+// ===================== PACKS (Fase 2 — site) =====================
+// Preços por escalão de funcionários (c/ IVA). Acima de 50, blocos de +5 a 5€/mês.
+const PACK_PRECOS_SITE = {
+    express: { 5: 42.49, 10: 47.49, 25: 62.49, 50: 102.49 },
+    expert:  { 5: 52.49, 10: 57.49, 25: 72.49, 50: 112.49 },
+    pro:     { 5: 72.49, 10: 77.49, 25: 92.49, 50: 132.49 },
+    supreme: { 5: 102.49, 10: 107.49, 25: 122.49, 50: 162.49 },
+};
+// Detalhe de cada pack — o que ganhas ao subir de nível fica agrupado, para o cliente perceber
+// logo "o que é que este pack me traz a mais". Cumulativo: cada um inclui tudo o do anterior.
+const PACK_DETALHES = {
+    express: {
+        nome: 'Express', resumo: 'O essencial para começar a organizar o serviço.',
+        grupos: [
+            { titulo: 'Incluído', itens: ['Clientes e locais', 'Ordens de Serviço + Agenda', 'Folhas de obra com PDF e assinatura do cliente', 'Manutenções e contratos de manutenção', 'Relatórios personalizados (até 5 modelos)', 'Calendário da equipa', 'App / PWA, notificações, modo claro/escuro'] },
+        ],
+    },
+    expert: {
+        nome: 'Expert', resumo: 'Tudo do Express, mais a gestão da equipa no terreno.',
+        grupos: [
+            { titulo: 'Tudo do Express, e ainda', itens: ['Ponto / assiduidade com GPS nas picagens', 'Férias e faltas', 'Portal do Cliente + pedidos de assistência', 'Relatórios de especialidade (REX, RBI, RSI, RCM, RIE, RCP, CCTV, Intrusão)', 'Mapa da equipa', 'Painel TV', 'Até 15 modelos de relatório personalizado'] },
+        ],
+    },
+    pro: {
+        nome: 'Pro', resumo: 'Tudo do Expert, mais a operação completa (obras, stock, frota).',
+        grupos: [
+            { titulo: 'Tudo do Expert, e ainda', itens: ['Obras e obras de longa duração + picagem em obra', 'Stock / artigos, armazéns, requisições, encomendas, fornecedores', 'Ferramentas com QR + material entregue a funcionários', 'Frota (viaturas, documentos, manutenções, sinistros)', 'Financeiro / despesas + custos internos e margens', 'Auto de medição', 'Até 40 modelos de relatório personalizado'] },
+        ],
+    },
+    supreme: {
+        nome: 'Supreme', resumo: 'Tudo do Pro, mais o topo de gama — sem limites.',
+        grupos: [
+            { titulo: 'Tudo do Pro, e ainda', itens: ['CRM comercial (leads, pipeline, propostas, conversão)', 'Dashboard analítico e KPIs avançados', 'GPS: mapa, histórico, geofence e alertas', 'Rondas / vigilância', 'Integração ERP / faturação (Moloni)', 'Auditoria avançada', 'Modelos de relatório personalizado ilimitados'] },
+        ],
+    },
+};
+let _packEscalaoAtual = '5';
+function _packFmtEuro(v) { return v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+function _packMudarEscalao(escalao) {
+    _packEscalaoAtual = escalao;
+    document.querySelectorAll('.pack-escalao-btn').forEach(b => b.classList.toggle('active', b.dataset.escalao === escalao));
+    const notaBlocos = document.getElementById('packNotaBlocos');
+    document.querySelectorAll('#packGrid .plan').forEach(card => {
+        const pack = card.dataset.pack;
+        const amt = card.querySelector('.amt');
+        const btn = card.querySelector('.btn');
+        if (escalao === '50+') {
+            // Acima de 50 é sempre conversa/bloco — mostra o preço-base de 50 como ponto de partida.
+            amt.textContent = 'desde ' + _packFmtEuro(PACK_PRECOS_SITE[pack][50]);
+            if (btn) btn.textContent = 'Falar connosco';
+            if (notaBlocos) notaBlocos.style.display = '';
+        } else {
+            amt.textContent = _packFmtEuro(PACK_PRECOS_SITE[pack][escalao]);
+            if (btn) btn.textContent = 'Começar';
+            if (notaBlocos) notaBlocos.style.display = 'none';
+        }
+    });
+}
+function _packVerDetalhes(pack) {
+    const alvo = document.getElementById('packDetalhesInline');
+    const def = PACK_DETALHES[pack];
+    if (!alvo || !def) return;
+    // Se já está aberto neste pack, fecha (toggle).
+    if (alvo.dataset.packAberto === pack) { alvo.innerHTML = ''; alvo.dataset.packAberto = ''; return; }
+    alvo.dataset.packAberto = pack;
+    alvo.innerHTML = `
+        <div class="pack-detalhe-caixa">
+            <button class="pack-detalhe-fechar" onclick="_packVerDetalhes('${pack}')" aria-label="Fechar">&times;</button>
+            <h3>Pack ${def.nome}</h3>
+            <p class="pack-detalhe-resumo">${def.resumo}</p>
+            ${def.grupos.map(g => `
+                <div class="pack-detalhe-grupo">
+                    <div class="pack-detalhe-grupo-titulo">${g.titulo}</div>
+                    <ul>${g.itens.map(i => `<li>${i}</li>`).join('')}</ul>
+                </div>
+            `).join('')}
+            <a class="btn btn-orange" href="#" onclick="_tgRegistarEvento('clique_cta','pack_${pack}_detalhe');abrirModalSignup('${pack}');return false;" style="margin-top:8px;display:inline-block;">Começar com o ${def.nome} →</a>
+        </div>
+    `;
+    alvo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
 if (document.getElementById('tg-landing')) {
     // O elemento "tg-landing" existe sempre no HTML (só fica escondido por CSS depois do login),
     // por isso não chega para saber se é mesmo um visitante novo — confirma com a sessão real do
     // Supabase antes de contar a visita, para não contar utilizadores já autenticados a recarregar a página.
     supa.auth.getSession().then(({ data }) => { if (!data.session) _tgRegistarVisita(); }).catch(() => {});
 }
-(function(){var grp=document.getElementById('tg-billing');if(grp){grp.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;grp.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');var mode=b.dataset.mode;document.querySelectorAll('#tg-landing [data-m][data-a]').forEach(function(el){var v=mode==='anual'?el.dataset.a:el.dataset.m;el.textContent=(v&&v.length)?v:'\u00A0';});});}var ano=document.getElementById('tg-ano');if(ano)ano.textContent=new Date().getFullYear();atualizarLanding();})();
+(function(){var ano=document.getElementById('tg-ano');if(ano)ano.textContent=new Date().getFullYear();if(typeof _packMudarEscalao==='function'&&document.getElementById('packGrid')){_packMudarEscalao('5');}atualizarLanding();})();
