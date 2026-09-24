@@ -7324,6 +7324,12 @@
         }
 
 
+        // ----- Licenciamento do módulo de Frota (mesma lógica dos Contratos) -----
+        // NOTA: estas duas linhas foram repostas — tinham sido apagadas por engano ao inserir o
+        // motor de packs, o que fazia _addonsAtivosDe rebentar com "PRECO_FROTA_MENSAL is not
+        // defined" e deixava a app em branco logo no login do admin/super admin.
+        const PRECO_FROTA_MENSAL = 9.99;
+        const PRECO_FROTA_ANUAL = +(9.99 * 12 * 0.9).toFixed(2); // 107.89
         const PRECO_ARMAZEM_MENSAL = 9.99;
         const PRECO_ARMAZEM_ANUAL = +(9.99 * 12 * 0.9).toFixed(2); // 107.89
         const PRECO_NOTIFICACOES_MENSAL = 4.99;
