@@ -1,10 +1,16 @@
 // Service Worker — Total Gest PWA
-const CACHE = 'totalgest-v3';
+const CACHE = 'totalgest-v4';
 const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(() => {})));
-  self.skipWaiting();
+  // IMPORTANTE: NÃO se chama skipWaiting() aqui de propósito.
+  // Antes chamava-se, e isso, combinado com o clients.claim() do activate, fazia a versão nova
+  // assumir o controlo de uma página que já estava a meio de carregar a versão antiga — ficava
+  // uma "mistura" das duas e a app aparecia em branco no primeiro acesso (só um Ctrl+Shift+R
+  // resolvia). Agora a versão nova instala-se e FICA À ESPERA ("waiting") até o utilizador
+  // clicar no botão "Atualizar" do aviso — que envia SKIP_WAITING (ver abaixo). Assim nunca há
+  // mistura: ou se está na versão antiga inteira, ou se passa à nova inteira de uma vez.
 });
 
 self.addEventListener('activate', e => {
@@ -18,6 +24,14 @@ self.addEventListener('activate', e => {
         clientsList.forEach(client => client.postMessage({ type: 'SW_UPDATED' }));
       })
   );
+});
+
+// Quando o utilizador clica em "Atualizar", a página manda esta mensagem — só aí é que a versão
+// nova toma o controlo (skipWaiting), de forma limpa e controlada.
+self.addEventListener('message', e => {
+  if (e.data === 'SKIP_WAITING' || (e.data && e.data.type === 'SKIP_WAITING')) {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', e => {

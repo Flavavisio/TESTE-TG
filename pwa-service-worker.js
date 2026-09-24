@@ -1,8 +1,13 @@
-
         // PWA: registo do service worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
                 navigator.serviceWorker.register('sw.js').then(function (reg) {
+                    // Se, logo ao registar, já existe uma versão nova "à espera" (waiting), é
+                    // porque foi instalada numa visita anterior e ficou parada — mostra já o
+                    // aviso, senão o utilizador podia nunca chegar a vê-lo.
+                    if (reg.waiting && navigator.serviceWorker.controller) {
+                        _mostrarAvisoNovaVersao();
+                    }
                     // Deteção de nova versão: quando o browser encontra um sw.js diferente do
                     // que já tinha em cache, este evento dispara. Assim que essa nova versão
                     // acabar de instalar (fica "installed"), se já havia uma versão anterior a
@@ -88,4 +93,3 @@
             const b = document.getElementById('bannerInstalarPWA');
             if (b) b.style.display = 'none';
         });
-    
