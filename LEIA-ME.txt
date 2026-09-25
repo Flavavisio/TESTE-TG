@@ -1,0 +1,24 @@
+TOTAL GEST — ATUALIZAÇÃO DO LAYOUT — 25/09/2026
+
+Aplicar estes seis ficheiros na pasta da instalação existente, depois de guardar uma cópia da versão anterior. Este pacote é uma atualização: não contém todos os recursos da aplicação original. Conservar os ficheiros externos existentes (logo, manifest, ícones, pdf-loader.js, emailjs-config.js, módulos CRM/Assistências/Rondas, templates e restantes recursos).
+
+ALTERAÇÕES
+- Navegação principal: Hoje, Clientes, Serviços, Agenda, Equipa; restantes destinos em Mais módulos, conservando os itens permitidos pela navegação original.
+- Dashboard Central continua disponível em Mais módulos. Hoje utiliza o resumo operacional existente.
+- Atalho Quiosque para admin, subadmin e encarregado, chamando a função original que verifica a licença e as regras de ativação.
+- Mobile: início operacional e barra inferior com os destinos disponíveis para o perfil; barra oculta com modal ou quiosque aberto.
+- Ficha de cliente: Obras, Relatórios de especialidade, Relatórios personalizados e Registo prévio / Documentação.
+- Obras filtradas por cliente e empresa, abrindo o detalhe original. A criação de obras permanece no módulo existente.
+- Relatórios concluídos abrem o snapshot existente. Rascunhos remetem para a OS, mantendo as regras de preenchimento e assinatura. Os modelos personalizados continuam geridos no módulo original.
+- Registo prévio consultável na ficha: é o da empresa prestadora, não um novo atributo do cliente. Edição, validação e renovação permanecem no perfil da empresa. Documentos de obra permanecem dentro de cada obra.
+- Site público: texto inicial mais curto, sem a duplicação, navegação e aparência simplificadas. Preços, calculadora e formulários existentes preservados.
+- Atualização da versão de cache, mantendo a confirmação original para ativar a nova versão.
+
+VALIDAÇÃO EFETUADA
+Verificação de sintaxe JavaScript; testes locais de isolamento entre clientes/empresas, perfis admin/funcionário, licença de Obras e separação de relatórios de especialidade/personalizados. Comparação das funções originais do quiosque e do preenchimento de relatórios: inalteradas.
+
+LIMITES DA VALIDAÇÃO
+Não publicado. Não foram executadas operações em dados reais nem testes autenticados. A instalação do navegador de teste falhou neste ambiente: falta a verificação visual e funcional integrada na instalação completa. A aparência é uma implementação inicial do conceito; preserva a estrutura e os fluxos reais da aplicação.
+
+VERIFICAÇÃO ANTES DE PUBLICAR
+Abrir em computador e telemóvel; verificar o menu para admin, subadmin, encarregado e funcionário; abrir dois clientes diferentes e os seus relatórios/obras; continuar um rascunho pela OS; testar o quiosque com os modos e permissões habituais. Confirmar que o cache anterior atualiza através do aviso normal da aplicação.

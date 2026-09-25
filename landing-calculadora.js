@@ -481,7 +481,7 @@ const PACK_FUNCS = [
         ['Agenda de OS', 1,1,1,1],
         ['Funcionários', 1,1,1,1],
         ['Calendário da equipa', 1,1,1,1],
-        ['Relatórios personalizados', 1,1,1,1],
+        ['Relatórios personalizados', '5 modelos','15 modelos','40 modelos','Ilimitados'],
     ]},
     { grupo: 'Equipa no terreno', linhas: [
         ['Ponto / Assiduidade', 0,1,1,1],
@@ -489,9 +489,9 @@ const PACK_FUNCS = [
         ['Férias e faltas', 0,1,1,1],
         ['Portal do Cliente', 0,1,1,1],
         ['Assistências', 0,1,1,1],
-        ['Relatórios de especialidade', 0,1,1,1],
+        ['Relatórios de especialidade', 0,'REX, RBI, RSI, RCM, RIE, RCP, CCTV, Intrusão','REX, RBI, RSI, RCM, RIE, RCP, CCTV, Intrusão','REX, RBI, RSI, RCM, RIE, RCP, CCTV, Intrusão'],
         ['Mapa da Equipa', 0,1,1,1],
-        ['Painel TV', 0,1,0,1],
+        ['Painel TV', 0,1,1,1],
     ]},
     { grupo: 'Operação (obras, stock, frota)', linhas: [
         ['Folha de Obra — Custos Internos', 0,0,1,1],
@@ -556,7 +556,14 @@ function _packVerDetalhes(pack) {
         ${g.linhas.map(l => `
             <tr>
                 <td class="pack-func-nome">${l[0]}</td>
-                ${[1,2,3,4].map(i => `<td class="pack-cel ${i === escolhido ? 'pack-col-destaque' : ''}">${l[i] ? '<span class="pack-sim">✓</span>' : '<span class="pack-nao">—</span>'}</td>`).join('')}
+                ${[1,2,3,4].map(i => {
+                    const v = l[i];
+                    // Valor pode ser 1 (✓), 0 (—) ou texto (ex.: limite de relatórios por pack).
+                    const conteudo = (typeof v === 'string')
+                        ? `<span class="pack-valor-txt">${v}</span>`
+                        : (v ? '<span class="pack-sim">✓</span>' : '<span class="pack-nao">—</span>');
+                    return `<td class="pack-cel ${i === escolhido ? 'pack-col-destaque' : ''}">${conteudo}</td>`;
+                }).join('')}
             </tr>
         `).join('')}
     `).join('');

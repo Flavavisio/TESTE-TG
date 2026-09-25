@@ -1,5 +1,5 @@
 // Service Worker — Total Gest PWA
-const CACHE = 'totalgest-v4';
+const CACHE = 'totalgest-v5-modern-20260925';
 const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
